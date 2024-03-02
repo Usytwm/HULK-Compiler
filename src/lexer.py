@@ -1,5 +1,5 @@
 import string
-from tools.automata import State
+from .tools.automata import State
 
 
 class Token:
@@ -284,15 +284,3 @@ class Lexer:
 
     def __call__(self, text):
         return [token for token in self._tokenize(text)]
-
-
-lexer = Lexer(
-    "eof",
-)
-
-with open("test/Data/prueba.txt", "r", encoding="utf-8") as archivo:
-    texto = archivo.read()
-
-lexer = Lexer("eof")
-for token in lexer._tokenize(texto):
-    print(token)
