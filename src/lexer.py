@@ -1,4 +1,3 @@
-import string
 from .tools.automaton import State
 from .tools.automaton_builder import AutomatonBuilder
 
