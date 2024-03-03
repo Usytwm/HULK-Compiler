@@ -1,7 +1,7 @@
-try:
-    import pydot
-except:
-    pass
+import pydot
+from .config import (
+    keywords,
+)
 
 
 class State:
@@ -54,13 +54,21 @@ class State:
         return any(s.final for s in states)
 
     def to_deterministic(self, formatter=lambda x: str(x)):
+        keyword_tags = set(keywords.values())
         closure = self.epsilon_closure
         start = State(tuple(closure), any(s.final for s in closure), formatter)
-        # Si el estado inicial es final, combina los tags de los estados del NFA que lo componen
+
+        # Determinar el tag del estado inicial priorizando palabras clave
+        keyword_tag = next(
+            (s.tag for s in closure if s.final and s.tag in keyword_tags), None
+        )
         if start.final:
-            start.tag = "/".join(
-                set(s.tag for s in closure if s.final and s.tag is not None)
-            )
+            if keyword_tag:
+                start.tag = keyword_tag
+            else:
+                start.tag = "/".join(
+                    set(s.tag for s in closure if s.final and s.tag is not None)
+                )
 
         closures = [closure]
         states = [start]
@@ -78,10 +86,22 @@ class State:
                     new_state = State(
                         tuple(closure), any(s.final for s in closure), formatter
                     )
+                    # Determinar el tag para nuevos estados priorizando palabras clave
+                    keyword_tag = next(
+                        (s.tag for s in closure if s.final and s.tag in keyword_tags),
+                        None,
+                    )
                     if new_state.final:
-                        new_state.tag = "/".join(
-                            set(s.tag for s in closure if s.final and s.tag is not None)
-                        )
+                        if keyword_tag:
+                            new_state.tag = keyword_tag
+                        else:
+                            new_state.tag = "/".join(
+                                set(
+                                    s.tag
+                                    for s in closure
+                                    if s.final and s.tag is not None
+                                )
+                            )
 
                     closures.append(closure)
                     states.append(new_state)
