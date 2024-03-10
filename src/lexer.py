@@ -1,5 +1,5 @@
-from .tools.automaton import State
-from .tools.automaton_builder import AutomatonBuilder
+from tools.automaton import State
+from tools.automaton_builder import AutomatonBuilder
 
 
 class Token:
@@ -14,15 +14,17 @@ class Token:
         Token's type.
     """
 
-    def __init__(self, lex, token_type, value=None):
+    def __init__(self, lex, token_type, value=None, row=None, column=None):
         self.lex = lex
         self.value = value
         if self.value is None:
             self.value = lex
         self.token_type = token_type
+        self.row = row
+        self.column = column
 
     def __str__(self):
-        return f"{self.token_type}: {self.lex}"
+        return f"Tokentype:{self.token_type}\nLexeme:{self.lex}\nValue:{self.value}\nrow:{self.row} , column:{self.column}"
 
     def __repr__(self):
         return str(self)
@@ -87,11 +89,27 @@ class Lexer:
         return None, lex
 
     def _tokenize(self, text):
+        row, column = 1, 1
+
         while text:
             final, lex = self._walk(text)
+            new_lines = lex.count("\n")
+            if new_lines > 0:
+                row += new_lines
+                column = len(lex) - lex.rfind("\n")
+            else:
+                column += len(lex)
             text = text[len(lex) :]
             if final:
-                yield Token(lex, final.tag)
+                try:
+                    value = float(lex) if "." in lex else int(lex)
+                    yield Token(
+                        lex, final.tag, value=value, row=row, column=column - len(lex)
+                    )
+                except ValueError:
+                    yield Token(lex, final.tag, row=row, column=column - len(lex))
+            elif lex == "":
+                raise ValueError
 
         yield Token("$", self.eof)
 
