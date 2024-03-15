@@ -3,6 +3,7 @@ import os
 
 current_dir = os.getcwd()
 sys.path.insert(0, current_dir)
+
 from src.lexical_analysis.regular_expressions import Regex
 from src.cmp.automata import (
     State,
