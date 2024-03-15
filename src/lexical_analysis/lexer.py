@@ -90,17 +90,63 @@ print("Letters:", letters)
 
 lexer = Lexer(
     [
-        ("num", f"([1-9][0-9]*|0)(.[0-9]+)?"),
-        ("for", "for"),
-        ("foreach", "foreach"),
-        ("space", "  *"),
+        # Paréntesis y delimitadores
+        ("num", "\-?(0|[1-9][0-9]*)(\.[0-9]+)?"),
+        ("opar", "\("),
+        ("cpar", "\)"),
+        ("plus", "\+"),
+        ("minus", "\-"),
+        ("star", "\*"),
+        ("div", "\/"),
+        ("lbrace", "\{"),
+        ("rbrace", "\}"),
+        ("semicolon", ";"),
+        ("comma", ","),
+        ("range", "range"),
+        # Operadores de asignación y definición
+        ("assign", "="),
+        ("def", ":="),
+        ("type", ":"),
+        ("dot", "\."),
+        ("underscore", "_"),
+        ("pipe", "\|"),
+        # Operadores de comparación
+        ("lt", "<"),
+        ("le", "<="),
+        ("gt", ">"),
+        ("ge", ">="),
+        ("eq", "=="),
+        ("ne", "!="),
+        # Números (enteros y decimales)
+        # ("num", "(0|[1-9][0-9]*)(\.[0-9]+)?"),
+        # Palabras clave
+        ("print", "print"),
         ("if", "if"),
-        ("id", f"[_a-zA-Z][_a-zA-Z0-9]*"),
+        ("else", "else"),
+        ("let", "let"),
+        ("in", "in"),
+        ("for", "for"),
+        ("function", "function"),
+        ("type", "type"),
+        # Identificadores
+        ("id", "[a-zA-Z_][a-zA-Z0-9_]*"),
+        # Cadenas de texto (incluyendo caracteres especiales)
+        ("string", '\\"[a-zA-Z0-9_: ]*\\"'),
+        # Espacios (para ser ignorados o manejados específicamente)
+        ("space", " *"),
+        # Nueva línea
+        ("newline", "\n"),
+        # Otros tokens especiales (como el operador de concatenación @)
+        ("concat", "@"),
+        # Funciones matemáticas y constantes
+        ("math_func", "(sin|cos|tan|log|sqrt)"),
+        ("pi", "PI"),
     ],
     "eof",
 )
 
-text = "5465 for 45foreach fore"
+text = 'let a = - 5.879 0.98789 -0.998 in {\n    print(a);\n    print("Calculating:");\n    let result = (a + 3) * 7;\n    print(result);\n    if (result > 35) {\n        print("Result is greater than 35");\n    } else {\n        print("Result is 35 or less");\n    }\n    for (i in range(0, 10)) {\n        print(i);\n    }\n    let piValue = PI;\n    print(sin(piValue / 2));\n}'
+
 print(f'\n>>> Tokenizando: "{text}"')
 tokens = lexer(text)
 print(tokens)

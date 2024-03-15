@@ -189,7 +189,7 @@ class Regex:
     def __init__(self, regex, skip_whitespaces=False):
         W = self
         W.regex = regex
-        W.automaton = W.build_automaton(regex)
+        W.automaton = W.build_automaton(regex, skip_whitespaces)
 
     def __call__(self, text):
         W = self
@@ -197,7 +197,7 @@ class Regex:
 
     @staticmethod
     def build_automaton(regex, skip_whitespaces=False):
-        h = regex_tokenizer(regex, G, skip_whitespaces=False)
+        h = regex_tokenizer(regex, G, skip_whitespaces)
         f = L(h)
         T = evaluate_parse(f, h)
         H = T.evaluate()

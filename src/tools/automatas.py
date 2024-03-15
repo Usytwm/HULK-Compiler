@@ -64,9 +64,6 @@ class DFA(NFA):
         NFA.__init__(self, states, finals, transitions, start)
         self.current = start
 
-    def epsilon_transitions(self):
-        raise TypeError()
-
     def _move(self, symbol):
         self.current = self.transitions[self.current][symbol][0]
 
@@ -95,8 +92,8 @@ def move(automaton, states, symbol):
 
 
 def epsilon_closure(automaton, states):
-    pending = list(states)
-    closure = set(states)
+    pending = [s for s in states]
+    closure = {s for s in states}
 
     while pending:
         state = pending.pop()

@@ -218,8 +218,8 @@ def deprecated_metodo_predictivo_no_recursivo(G, M=None, firsts=None, follows=No
                         stack.append(symbol)
             else:
                 # Error: no hay producción aplicable
-                # raise SyntaxError("Error de sintaxis, no hay producción aplicable")
-                continue
+                raise SyntaxError("Error de sintaxis, no hay producción aplicable")
+                # continue
 
         # El análisis izquierdo está listo!
         return [out[0] for out in output]
