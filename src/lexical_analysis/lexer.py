@@ -1,4 +1,3 @@
-# from cmp.utils import Token
 import sys
 import os
 

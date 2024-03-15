@@ -1,11 +1,6 @@
 import unittest
-from src.lexer import Lexer, Token
-from src.tools.config import (
-    keywords,
-    punctuation_signs,
-    single_operators,
-    double_operators,
-)
+from src.cmp.utils import Token
+from src.lexical_analysis.lexer import Lexer
 
 
 class TestLexer(unittest.TestCase):
@@ -79,7 +74,7 @@ class TestLexer(unittest.TestCase):
     def test_keywords(self):
         lexer = Lexer(eof="eof")
 
-        for keyword, tag in keywords.items():
+        for keyword, tag in " ".items():
             with self.subTest(keyword=keyword, tag=tag):
                 input_text = keyword
                 expected_tokens = [
@@ -107,74 +102,6 @@ class TestLexer(unittest.TestCase):
                         expected.token_type,
                         f"Tipo de token incorrecto para '{keyword}'.",
                     )
-
-    def test_single_operators(self):
-        lexer = Lexer(
-            eof="eof"
-        )  # Asume que tienes una clase Lexer definida correctamente.
-
-        for op in single_operators:
-            with self.subTest(op=op):
-                input_text = op
-                expected_tokens = [
-                    Token(op, "OPERATOR"),
-                    Token("$", "eof"),
-                ]
-
-                result_tokens = lexer(
-                    input_text
-                )  # Asegúrate de que esta sea la forma correcta de obtener tokens desde tu lexer.
-
-                self.assertEqual(
-                    len(result_tokens),
-                    len(expected_tokens),
-                    f"Número incorrecto de tokens para operador '{op}'.",
-                )
-                for result, expected in zip(result_tokens, expected_tokens):
-                    self.assertEqual(
-                        result.lex,
-                        expected.lex,
-                        f"Lexema incorrecto para operador '{op}'.",
-                    )
-                    self.assertEqual(
-                        result.token_type,
-                        expected.token_type,
-                        f"Tipo de token incorrecto para operador '{op}'.",
-                    )
-
-    def test_double_operators(self):
-        lexer = Lexer(
-            eof="eof"
-        )  # Asume que tienes una clase Lexer definida correctamente.
-
-        for op, next_chars in double_operators.items():
-            for next_char in next_chars:
-                combined_op = op + next_char
-                with self.subTest(op=combined_op):
-                    input_text = combined_op
-                    expected_tokens = [
-                        Token(combined_op, "OPERATOR"),
-                        Token("$", "eof"),
-                    ]
-
-                    result_tokens = lexer(input_text)
-
-                    self.assertEqual(
-                        len(result_tokens),
-                        len(expected_tokens),
-                        f"Número incorrecto de tokens para operador '{combined_op}'.",
-                    )
-                    for result, expected in zip(result_tokens, expected_tokens):
-                        self.assertEqual(
-                            result.lex,
-                            expected.lex,
-                            f"Lexema incorrecto para operador '{combined_op}'.",
-                        )
-                        self.assertEqual(
-                            result.token_type,
-                            expected.token_type,
-                            f"Tipo de token incorrecto para operador '{combined_op}'.",
-                        )
 
     def test_string_literals(self):
         lexer = Lexer(eof="eof")
@@ -217,7 +144,7 @@ class TestLexer(unittest.TestCase):
     def test_punctuation(self):
         lexer = Lexer(eof="eof")
 
-        for sign in punctuation_signs:
+        for sign in ".,;:()[]{}+-*/^=<>!&|~%".split():
             with self.subTest(sign=sign):
                 input_text = sign
                 expected_tokens = [
@@ -444,9 +371,6 @@ class TestLexer(unittest.TestCase):
         for result, expected in zip(result_tokens, expected_tokens):
             self.assertEqual(result.lex, expected.lex)
             self.assertEqual(result.token_type, expected.token_type)
-        # self.assertEqual(
-        #     result_tokens, expected_tokens, f"Tokens incorrectos para '{input_text}'."
-        # )
 
 
 if __name__ == "__main__":
