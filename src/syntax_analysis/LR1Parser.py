@@ -1,8 +1,8 @@
-from cmp.pycompiler import Grammar
-from cmp.pycompiler import Item, State
-from cmp.utils import ContainerSet
-from cmp.utils_extra import compute_local_first, compute_firsts
-from cmp.automata import multiline_formatter
+from src.cmp.pycompiler import Grammar
+from src.cmp.pycompiler import Item
+from src.cmp.utils import ContainerSet
+from src.tools.parsing import compute_local_first, compute_firsts
+from src.cmp.automata import multiline_formatter, State
 
 class ShiftReduceParser:
     SHIFT = 'SHIFT'
@@ -168,3 +168,30 @@ def build_LR1_automaton(G):
     
     automaton.set_formatter(multiline_formatter)
     return automaton
+
+#from pandas import DataFrame
+#def encode_value(value):
+#    try:
+#        action, tag = value
+#        if action == ShiftReduceParser.SHIFT:
+#            return 'S' + str(tag)
+#        elif action == ShiftReduceParser.REDUCE:
+#            return repr(tag)
+#        elif action ==  ShiftReduceParser.OK:
+#            return action
+#        else:
+#            return value
+#    except TypeError:
+#        return value
+#
+#def table_to_dataframe(table):
+#    d = {}
+#    for (state, symbol), value in table.items():
+#        value = encode_value(value)
+#        try:
+#            d[state][symbol] = value
+#        except KeyError:
+#            d[state] = { symbol: value }
+#
+#    return DataFrame.from_dict(d, orient='index', dtype=str)
+#
