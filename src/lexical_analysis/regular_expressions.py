@@ -141,23 +141,6 @@ def build_grammar():
     C %= symbol + W + cbra, lambda h, s: s[2], None, lambda h, s: SymbolNode(s[1]), None
     C %= no + E + cbra, lambda h, s: NegatedSetNode(s[2]), None, None, None
 
-    # A %= (
-    #     obra + symbol + W + cbra,
-    #     lambda h, s: s[3],
-    #     None,
-    #     None,
-    #     lambda h, s: SymbolNode(s[2]),
-    #     None,
-    # )
-    # A %= (
-    #     obra + no + symbol + cbra,
-    #     lambda h, s: NegatedSetNode(s[3]),
-    #     None,
-    #     None,
-    #     None,
-    #     None,
-    # )
-
     W %= (
         symbol + W,
         lambda h, s: UnionNode(h[0], s[2]),
