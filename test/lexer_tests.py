@@ -174,7 +174,7 @@ class TestLexer(unittest.TestCase):
             '"with punctuation!"',
             '"with escape \\n sequence"',
             '"with multiple \\t\\n\\r escapes"',
-            # '"escaped \\"quote\\" inside"',
+            '"escaped \\"quote\\" inside"',
         ]
         for input_text in input_texts:
             result_tokens = lexer(input_text)
