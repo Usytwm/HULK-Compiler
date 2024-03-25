@@ -52,8 +52,8 @@ class NegatedSetNode(UnaryNode):
     @staticmethod
     def operate(value):
         all_chars = obtener_todos_los_caracteres_posibles()
-        value.vocabulary = all_chars
-        return automata_complement(value)
+        # value.vocabulary = all_chars
+        # return automata_complement(value)
         states = 2
         finals = {1}  # El estado 1 es el estado final
         transitions = {}  # Transiciones vacías para empezar
@@ -61,7 +61,7 @@ class NegatedSetNode(UnaryNode):
         # Añadir las transiciones necesarias a partir del estado inicial para cada carácter no incluido en `self.lex`
         for char in all_chars:
             if (
-                char not in value.lex.lex
+                char not in value.vocabulary
             ):  # Si el carácter no está en el conjunto negado
                 transitions[(0, char)] = [1]
 
