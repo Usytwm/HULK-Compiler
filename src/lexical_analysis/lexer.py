@@ -12,10 +12,11 @@ from src.cmp.utils import Token
 
 
 class Lexer:
-    def __init__(self, table, eof):
+    def __init__(self, table, eof, includesapces=True):
         self.eof = eof
         self.regexs = self._build_regexs(table)
         self.automaton = self._build_automaton()
+        self.spaces = includesapces
 
     def _build_regexs(self, table):
         regexs = []
@@ -72,6 +73,8 @@ class Lexer:
             final = [state.tag for state in final.state if state.tag]
             final.sort()
 
+            if self.spaces and final[0][1] == "space":
+                continue
             yield lex, final[0][1]
 
         yield "$", self.eof
@@ -82,17 +85,19 @@ class Lexer:
 
 # lexer = Lexer(
 #     [
-#         (
-#             "string",
-#             '"([^"])*"',
-#         ),
+#         ("opar", "\("),
+#         ("cpar", "\)"),
+#         ("comma", ","),
+#         ("semicolon", ";"),
+#         ("string", '"([^"])*"'),
 #         ("id", "[a-zA-Z_][a-zA-Z_0-9]*"),
 #         ("space", " *"),
 #     ],
 #     "eof",
 # )
 # input_texts = [
-#     '"escaped" tanke "de guerra" quote "inside" print "outside"',
+#     'print("Hello World");',
+#     '"escaped" tanke "de \\" guerra \\" \\" \\" que tal" quote "inside \\" husuh\\"" print "outside"',
 #     '"with multiple \\t\\n\\r escapes"',
 #     '"with escape \\n sequence"',
 #     '"simple"',

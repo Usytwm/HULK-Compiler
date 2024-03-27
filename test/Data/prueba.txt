@@ -10,7 +10,6 @@ print(sin(2 * PI) ^ 2 + cos(3 * PI / log(4, 64)));
     print(sin(PI/2));
     print("Hello World");
 }
-function tan(x) => sin(x) / cos(x);
 function cot(x) => 1 / tan(x);
 function tan(x) => sin(x) / cos(x);
 

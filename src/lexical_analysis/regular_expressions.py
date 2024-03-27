@@ -4,7 +4,6 @@ from src.tools.automatas import (
     DFA,
     NFA,
     automata_closure,
-    automata_complement,
     automata_concatenation,
     automata_minimization,
     automata_union,
@@ -52,14 +51,26 @@ class NegatedSetNode(UnaryNode):
     @staticmethod
     def operate(value):
         all_chars = obtener_todos_los_caracteres_posibles()
-        # value.vocabulary = all_chars
-        # return automata_complement(value)
-        states = 2
+        states = 3  # Aumentamos el número de estados para manejar el escape
         finals = {1}  # El estado 1 es el estado final
         transitions = {}  # Transiciones vacías para empezar
 
-        # Añadir las transiciones necesarias a partir del estado inicial para cada carácter no incluido en `self.lex`
+        # Añadir transiciones para el carácter de escape seguido de comillas
+        # Suponiendo que el estado 2 maneja el escape de comillas dobles
+        transitions[(0, "\\")] = [
+            2
+        ]  # Desde el estado inicial, con \ va al estado de escape
+        transitions[(2, '"')] = [
+            3
+        ]  # Desde el estado de escape, con " va al estado inicial
+        transitions[(2, "n")] = [3]
+        transitions[(2, "t")] = [3]
+        transitions[(2, "r")] = [3]
+
+        # Añadir las transiciones necesarias para cada carácter no incluido en `value.vocabulary`
         for char in all_chars:
+            if char == "\\" or char == '"':
+                continue  # Ya manejamos \ y " arriba, así que los ignoramos aquí
             if (
                 char not in value.vocabulary
             ):  # Si el carácter no está en el conjunto negado
@@ -95,9 +106,6 @@ def regex_tokenizer(text, G, skip_whitespaces=True):
         try:
             tokens.append(fixed_tokens[char])
         except KeyError:
-            # if tokens and tokens[-1].lex == "\\":
-            #     tokens.pop()
-            #     char = "\\" + char
             tokens.append(Token(char, G["symbol"]))
 
     tokens.append(Token("$", G.EOF))
