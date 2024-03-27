@@ -274,17 +274,17 @@ def evaluate(production, left_parse, tokens, inherited_value=None):
     return synteticed[0]
 
 
-def regex_tokenizer(text, G, skip_whitespaces=True):
-    tokens = []
-    # > fixed_tokens = ???
-    fixed_tokens = {lex: Token(lex, G[lex]) for lex in "| * + - ? ( ) [ ] ε".split()}
-    for char in text:
-        if skip_whitespaces and char.isspace():
-            continue
-        try:
-            tokens.append(fixed_tokens[char])
-        except KeyError:
-            tokens.append(Token(char, G["symbol"]))
+# def regex_tokenizer(text, G, skip_whitespaces=True):
+#     tokens = []
+#     # > fixed_tokens = ???
+#     fixed_tokens = {lex: Token(lex, G[lex]) for lex in "| * + - ? ( ) [ ] ε".split()}
+#     for char in text:
+#         if skip_whitespaces and char.isspace():
+#             continue
+#         try:
+#             tokens.append(fixed_tokens[char])
+#         except KeyError:
+#             tokens.append(Token(char, G["symbol"]))
 
-    tokens.append(Token("$", G.EOF))
-    return tokens
+#     tokens.append(Token("$", G.EOF))
+#     return tokens

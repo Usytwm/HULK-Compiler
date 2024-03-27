@@ -14,7 +14,7 @@ from src.cmp.utils import Token
 from src.tools.parsing import evaluate_parse, metodo_predictivo_no_recursivo
 
 
-def obtener_todos_los_caracteres_posibles():
+def get_all_character():
     return [chr(i) for i in range(32, 127)]
 
 
@@ -50,30 +50,21 @@ class ConcatNode(BinaryNode):
 class NegatedSetNode(UnaryNode):
     @staticmethod
     def operate(value):
-        all_chars = obtener_todos_los_caracteres_posibles()
-        states = 3  # Aumentamos el número de estados para manejar el escape
-        finals = {1}  # El estado 1 es el estado final
-        transitions = {}  # Transiciones vacías para empezar
+        all_chars = get_all_character()
+        states = 3
+        finals = {1}
+        transitions = {}
 
-        # Añadir transiciones para el carácter de escape seguido de comillas
-        # Suponiendo que el estado 2 maneja el escape de comillas dobles
-        transitions[(0, "\\")] = [
-            2
-        ]  # Desde el estado inicial, con \ va al estado de escape
-        transitions[(2, '"')] = [
-            3
-        ]  # Desde el estado de escape, con " va al estado inicial
+        transitions[(0, "\\")] = [2]
+        transitions[(2, '"')] = [3]
         transitions[(2, "n")] = [3]
         transitions[(2, "t")] = [3]
         transitions[(2, "r")] = [3]
 
-        # Añadir las transiciones necesarias para cada carácter no incluido en `value.vocabulary`
         for char in all_chars:
             if char == "\\" or char == '"':
-                continue  # Ya manejamos \ y " arriba, así que los ignoramos aquí
-            if (
-                char not in value.vocabulary
-            ):  # Si el carácter no está en el conjunto negado
+                continue
+            if char not in value.vocabulary:
                 transitions[(0, char)] = [1]
 
         return NFA(
