@@ -3,6 +3,11 @@ from src.cmp.pycompiler import Item
 from src.cmp.utils import ContainerSet
 from src.tools.parsing import compute_local_first, compute_firsts
 from src.cmp.automata import multiline_formatter, State
+import sys
+import os
+
+current_dir = os.getcwd()
+sys.path.insert(0, current_dir)
 
 class ShiftReduceParser:
     SHIFT = 'SHIFT'
