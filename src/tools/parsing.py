@@ -224,7 +224,6 @@ def deprecated_metodo_predictivo_no_recursivo(G, M=None, firsts=None, follows=No
         # El análisis izquierdo está listo!
         return [out[0] for out in output]
 
-    # ¡El parser está listo!
     return parser
 
 

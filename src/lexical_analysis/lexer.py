@@ -9,6 +9,7 @@ from src.cmp.automata import (
     State,
 )
 from src.cmp.utils import Token
+from src.lexical_analysis.regex_patterns import build_regex
 
 
 class Lexer:
@@ -83,31 +84,23 @@ class Lexer:
         return [Token(lex, ttype) for lex, ttype in self._tokenize(text)]
 
 
-# lexer = Lexer(
-#     [
-#         ("opar", "\("),
-#         ("cpar", "\)"),
-#         ("comma", ","),
-#         ("semicolon", ";"),
-#         ("string", '"([^"])*"'),
-#         ("id", "[a-zA-Z_][a-zA-Z_0-9]*"),
-#         ("space", " *"),
-#     ],
-#     "eof",
-# )
-# input_texts = [
-#     'print("Hello World");',
-#     '"escaped" tanke "de \\" guerra \\" \\" \\" que tal" quote "inside \\" husuh\\"" print "outside"',
-#     '"with multiple \\t\\n\\r escapes"',
-#     '"with escape \\n sequence"',
-#     '"simple"',
-#     '"with space"',
-#     '"with punctuation!"',
-# ]
+lexer = Lexer(
+    build_regex(),
+    "eof",
+)
+input_texts = [
+    'print("Hello World");',
+    '"escaped" tanke "de \\" guerra \\" \\" \\" que tal" quote "inside \\" husuh\\"" print "outside"',
+    '"with multiple \\t\\n\\r escapes"',
+    '"with escape \\n sequence"',
+    '"simple"',
+    '"with space"',
+    '"with punctuation!"',
+]
 
-# for text in input_texts:
-#     print(f'\n>>> Tokenizando: "{text}"')
-#     tokens = lexer(text)
-#     print(tokens)
-#     # assert [t.token_type for t in tokens] == ["string", "eof"]
-#     # assert [t.lex for t in tokens] == [text, "$"]
+for text in input_texts:
+    print(f'\n>>> Tokenizando: "{text}"')
+    tokens = lexer(text)
+    print(tokens)
+    # assert [t.token_type for t in tokens] == ["string", "eof"]
+    # assert [t.lex for t in tokens] == [text, "$"]

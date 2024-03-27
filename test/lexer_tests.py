@@ -1,6 +1,7 @@
 import unittest
 from src.cmp.utils import Token
 from src.lexical_analysis.lexer import Lexer
+from src.lexical_analysis.regex_patterns import build_regex
 
 
 class TestLexer(unittest.TestCase):
@@ -418,81 +419,11 @@ class TestLexer(unittest.TestCase):
         with open(path, "r", encoding="utf-8") as archivo:
             content = archivo.read()
             lexer = Lexer(
-                [
-                    # numeros
-                    ("num", "(\-|\+)?(0|[1-9][0-9]*)(\.[0-9]+)?([eE][\+\-]?[0-9]+)?"),
-                    # Espacios (para ser ignorados o manejados específicamente)
-                    ("space", " *"),
-                    # Nueva línea
-                    ("newline", "\n"),
-                    # Operadores de asignación y definición
-                    ("assign", "="),
-                    ("destructive_assign", ":="),
-                    ("colon", ":"),
-                    ("underscore", "_"),
-                    ("arrow", "=>"),
-                    # Operadores de comparación
-                    ("lt", "<"),
-                    ("le", "<="),
-                    ("gt", ">"),
-                    ("ge", ">="),
-                    ("eq", "=="),
-                    ("ne", "!="),
-                    # Palabras clave
-                    ("print", "print"),
-                    ("if", "if"),
-                    ("else", "else"),
-                    ("let", "let"),
-                    ("in", "in"),
-                    ("for", "for"),
-                    ("function", "function"),
-                    ("type", "type"),
-                    ("range", "range"),
-                    ("protocol", "protocol"),
-                    # Otros tokens especiales (como el operador de concatenación @)
-                    ("concat", "@"),
-                    # Funciones matemáticas y constantes
-                    ("math_func", "(sin|cos|tan|log|sqrt)"),
-                    ("pi", "PI"),
-                    # Identificadores
-                    ("id", "[a-zA-Z_][a-zA-Z0-9_]*"),
-                    # Cadenas de texto (incluyendo caracteres especiales)
-                    (
-                        "lit",
-                        '"([^"])*"',
-                    ),  #!no se como hacer que se detenga en en primer " que no sea \"
-                    # Signos de puntuacion
-                    ("dot", "\."),
-                    ("obracket", "\["),
-                    ("cbracket", "\]"),
-                    ("obrace", "\{"),
-                    ("cbrace", "\}"),
-                    ("plus", "\+"),
-                    ("minus", "\-"),
-                    ("star", "\*"),
-                    ("div", "\/"),
-                    ("exp", "(\^|\**)"),
-                    ("assign", "="),
-                    ("lt", "<"),
-                    ("gt", ">"),
-                    ("excl", "!"),
-                    ("amp", "&"),
-                    ("pipe", "\|"),
-                    ("tilde", "~"),
-                    ("percent", "%"),
-                    ("opar", "\("),
-                    ("cpar", "\)"),
-                    ("semicolon", ";"),
-                    ("comma", ","),
-                ],
+                build_regex(),
                 "eof",
             )
 
         result_tokens = lexer(content)
-        print(result_tokens)
-
-        # # Un ejemplo de cómo definir los tokens esperados para una porción del contenido del archivo.
-        # # Necesitarás expandir esto basado en el contenido completo de tu archivo.
         # expected_tokens = [
         #     # 42;
         #     Token("42", "num"),
@@ -743,78 +674,11 @@ class TestLexer(unittest.TestCase):
         #     # Continúa con la lista de tokens esperados...
         # ]
 
-        # # Llama al método assertLexerOutput pasando el contenido del archivo y los tokens esperados.
         # self.assertLexerOutput(content, expected_tokens)
 
     def assertLexerOutput(self, input_text, expected_tokens: list[Token]):
         lexer = Lexer(
-            [
-                # numeros
-                ("num", "(\-|\+)?(0|[1-9][0-9]*)(\.[0-9]+)?([eE][\+\-]?[0-9]+)?"),
-                # Espacios (para ser ignorados o manejados específicamente)
-                ("space", " *"),
-                # Nueva línea
-                ("newline", "\n"),
-                # Operadores de asignación y definición
-                ("assign", "="),
-                ("destructive_assign", ":="),
-                ("colon", ":"),
-                ("underscore", "_"),
-                ("arrow", "=>"),
-                # Operadores de comparación
-                ("lt", "<"),
-                ("le", "<="),
-                ("gt", ">"),
-                ("ge", ">="),
-                ("eq", "=="),
-                ("ne", "!="),
-                # Palabras clave
-                ("print", "print"),
-                ("if", "if"),
-                ("else", "else"),
-                ("let", "let"),
-                ("in", "in"),
-                ("for", "for"),
-                ("function", "function"),
-                ("type", "type"),
-                ("range", "range"),
-                ("protocol", "protocol"),
-                # Otros tokens especiales (como el operador de concatenación @)
-                ("concat", "@"),
-                # Funciones matemáticas y constantes
-                ("math_func", "(sin|cos|tan|log|sqrt)"),
-                ("pi", "PI"),
-                # Identificadores
-                ("id", "[a-zA-Z_][a-zA-Z0-9_]*"),
-                # Cadenas de texto (incluyendo caracteres especiales)
-                (
-                    "lit",
-                    '"([^"])*"',
-                ),
-                # Signos de puntuacion
-                ("dot", "\."),
-                ("obracket", "\["),
-                ("cbracket", "\]"),
-                ("obrace", "\{"),
-                ("cbrace", "\}"),
-                ("plus", "\+"),
-                ("minus", "\-"),
-                ("star", "\*"),
-                ("div", "\/"),
-                ("exp", "(\^|\**)"),
-                ("assign", "="),
-                ("lt", "<"),
-                ("gt", ">"),
-                ("excl", "!"),
-                ("amp", "&"),
-                ("pipe", "\|"),
-                ("tilde", "~"),
-                ("percent", "%"),
-                ("opar", "\("),
-                ("cpar", "\)"),
-                ("semicolon", ";"),
-                ("comma", ","),
-            ],
+            build_regex(),
             "eof",
         )
 
