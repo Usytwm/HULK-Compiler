@@ -37,35 +37,29 @@ def gramm_Hulk_LR1():
         control_structure,
         contElif,
         contElse,
-        exp_or_cond,
     ) = G.NonTerminals(
-        "print_statement assignment function_definition control_structure contElif contElse exp_or_cond"
+        "print_statement assignment function_definition control_structure contElif contElse"
     )
     (
         if_structure,
         while_structure,
         for_structure,
-        member,
-        method_override,
         create_statement,
         non_create_statement,
     ) = G.NonTerminals(
-        "if_structure while_structure for_structure member method_override create_statement non_create_statement"
+        "if_structure while_structure for_structure create_statement non_create_statement"
+    )
+    let_in, multi_assignment, kern_assignment = G.NonTerminals(
+        "let_in multi_assignment kern_assignment"
     )
     (
-        compAritCond,
-        compBoolCond,
-        base_args,
-        let_in,
-        multi_assignment,
-        kern_assignment,
-        op_factor,
-        op_term,
+        cont_member,
+        kern_instance_creation,
+        concatStrings,
+        concatStringsWithSpace,
+        math_call,
     ) = G.NonTerminals(
-        "compAritCond compBoolCond base_args let_in multi_assignment kern_assignment op_factor op_term"
-    )
-    cont_member, kern_instance_creation = G.NonTerminals(
-        "cont_member kern_instance_creation"
+        "cont_member kern_instance_creation concatStrings concatStringsWithSpace math_call"
     )
     (
         Print,
@@ -100,12 +94,14 @@ def gramm_Hulk_LR1():
     Comma, Dot, If, Else, While, For, Let, Function, Colon = G.Terminals(
         ", . if else while for let function :"
     )
-    identifier, number, string, Elif, Type, Inherits, New, In, def_Type = G.Terminals(
-        "identifier number string elif type inherits new in def_Type"
+    identifier, number, string, Elif, Type, Inherits, New, In, def_Type, arroba = (
+        G.Terminals("identifier number string elif type inherits new in def_Type @")
     )
-    sComil, dComill = G.Terminals("' \"")
+    (
+        sComil,
+        dComill,
+    ) = G.Terminals("' \"")
     sqrt, sin, cos, tan, exp, log, rand = G.Terminals("sqrt sin cos tan exp log rand")
-    math_op, math_call = G.NonTerminals("math_op math_call")
 
     Program %= statement_list, lambda h, s: ProgramNode(s[1])
     statement_list %= statement + statement_list, lambda h, s: [s[1]] + s[2]
@@ -144,26 +140,25 @@ def gramm_Hulk_LR1():
     function_definition %= (
         Function
         + identifier
-        + type_annotation
         + oPar
         + parameters
         + cPar
         + oBrace
         + statement_list
         + cBrace,
-        lambda h, s: FunctionDefinitionNode(s[2], s[3], s[5], s[8]),
+        lambda h, s: MethodDefinitionNode(s[2], s[4], TypeNode("object"), s[7]),
     )
     function_definition %= (
         Function
         + identifier
-        + type_annotation
         + oPar
         + parameters
         + cPar
+        + type_annotation
         + Arrow
         + non_create_statement
         + Semi,
-        lambda h, s: FunctionDefinitionNode(s[2], s[3], s[5], s[8]),
+        lambda h, s: MethodDefinitionNode(s[2], s[4], s[6], s[8]),
     )
 
     ##--------------------------Redefinir luego-----------------------------------------------
@@ -221,74 +216,108 @@ def gramm_Hulk_LR1():
         lambda h, s: ForStructureNode(s[3], s[5], s[7], s[10]),
     )
 
-    compBoolCond %= And, lambda h, s: s[1]
-    compBoolCond %= Or, lambda h, s: s[1]
-
-    compAritCond %= Less, lambda h, s: s[1]
-    compAritCond %= Greater, lambda h, s: s[1]
-    compAritCond %= Equal, lambda h, s: s[1]
-    compAritCond %= LessEqual
-    compAritCond %= GreaterEqual
-    compAritCond %= NotEqual
-
-    expression_1, expression_2, expression_3, expression_4, expression_5 = (
+    expression_0, expression_1, expression_2, expression_3, expression_4 = (
         G.NonTerminals(
-            "expression_1 expression_2 expression_3 expression_4 expression_5"
+            "expression_0 expression_1 expression_2 expression_3 expression_4"
         )
     )
 
-    expression %= expression_1 + Is + def_Type, lambda h, s: s[1]
-    expression %= expression_1
-    expression_1 %= expression_2 + compBoolCond + expression_2
-    expression_1 %= expression_2
-    expression_2 %= expression_3 + compAritCond + expression_3
-    expression_2 %= expression_3
-    expression_3 %= Not + expression_4
-    expression_3 %= expression_4
+    concatStrings %= expression + arroba + expression, lambda h, s: StringConcatNode(
+        s[1], s[4]
+    )
+    concatStringsWithSpace %= (
+        expression + arroba + arroba + expression,
+        lambda h, s: StringConcatWithSpaceNode(s[1], s[4]),
+    )
 
-    expression_4 %= term + op_term, lambda h, s: s[1] + s[expression_2]
-    op_term %= Plus + term + op_term, lambda h, s: PlusExpressionNode(s[1])
-    op_term %= Minus + term + op_term
-    op_term %= G.Epsilon
-    Plus
+    expression %= expression_0 + arroba + expression_0, lambda h, s: StringConcatNode(
+        s[1], s[4]
+    )
+    expression %= (
+        expression_0 + arroba + arroba + expression_0,
+        lambda h, s: StringConcatWithSpaceNode(s[1], s[4]),
+    )
+    expression_0 %= expression_1 + Is + def_Type, lambda h, s: BoolIsTypeNode(
+        s[1], s[3]
+    )
+    expression_0 %= expression_1, lambda h, s: s[1]
+    expression_1 %= expression_2 + And + expression_2, lambda h, s: BoolAndNode(
+        s[1], s[3]
+    )
+    expression_1 %= expression_2 + Or + expression_2, lambda h, s: BoolOrNode(
+        s[1], s[3]
+    )
+    expression_1 %= expression_2, lambda h, s: s[1]
+    expression_2 %= expression_3 + Less + expression_3, lambda h, s: BoolCompLessNode(
+        s[1], s[3]
+    )
+    expression_2 %= (
+        expression_3 + Greater + expression_3,
+        lambda h, s: BoolCompGreaterNode(s[1], s[3]),
+    )
+    expression_2 %= expression_3 + Equal + expression_3, lambda h, s: BoolCompEqualNode(
+        s[1], s[3]
+    )
+    expression_2 %= (
+        expression_3 + LessEqual + expression_3,
+        lambda h, s: BoolCompLessIqualNode(s[1], s[3]),
+    )
+    expression_2 %= (
+        expression_3 + GreaterEqual + expression_3,
+        lambda h, s: BoolCompGreaterIqualNode(s[1], s[3]),
+    )
+    expression_2 %= (
+        expression_3 + NotEqual + expression_3,
+        lambda h, s: BoolCompNotEqualNode(s[1], s[3]),
+    )
+    expression_2 %= expression_3, lambda h, s: s[1]
+    expression_3 %= Not + expression_4, lambda h, s: BoolNotNode(s[2])
+    expression_3 %= expression_4, lambda h, s: s[1]
 
-    term %= factor + op_factor
-    op_factor %= Mult + factor + op_factor
-    op_factor %= Div + factor + op_factor
-    op_factor %= Mod + factor + op_factor
-    op_factor %= G.Epsilon
+    expression_4 %= term + Plus + expression_4, lambda h, s: PlusExpressionNode(
+        s[2], s[1], s[3]
+    )
+    expression_4 %= term + Minus + expression_4, lambda h, s: SubsExpressionNode(
+        s[2], s[1], s[3]
+    )
+    expression_4 %= term, lambda h, s: s[1]
+
+    term %= factor + Mult + term, lambda h, s: MultExpressionNode(s[1], s[3])
+    term %= factor + Div + term, lambda h, s: DivExpressionNode(s[1], s[3])
+    term %= factor + Mod + term, lambda h, s: ModExpressionNode(s[1], s[3])
+    term %= factor, lambda h, s: s[1]
 
     factor %= number, lambda h, s: NumberNode(s[1])
-    factor %= oPar + expression + cPar  # , lambda h, s:  ExpressionNode(s[2])
+    factor %= string, lambda h, s: StringNode(s[1])
+    factor %= oPar + expression + cPar, lambda h, s: s[2]
     factor %= function_call, lambda h, s: s[1]
     factor %= member_access, lambda h, s: s[1]
     factor %= math_call, lambda h, s: s[1]
     factor %= identifier, lambda h, s: IdentifierNode(s[1])
     factor %= _False, lambda h, s: BooleanNode(s[1])
     factor %= _True, lambda h, s: BooleanNode(s[1])
+    factor %= kern_instance_creation, lambda h, s: s[1]
 
-    math_op %= sqrt
-    math_op %= cos
-    math_op %= sin
-    math_op %= tan
-    math_op %= exp
-    math_op %= tan
+    kern_instance_creation %= (
+        New + def_Type + oPar + arguments + cPar,
+        lambda h, s: KernInstanceCreationNode(s[2], s[4]),
+    )
 
     function_call %= identifier + oPar + arguments + cPar, lambda h, s: s[1]
-    math_call %= (
-        math_op + oPar + expression_4 + cPar,
-        lambda h, s: MathOperationCallNode(s[1], s[3]),
-    )
+    math_call %= sqrt + oPar + expression_4 + cPar, lambda h, s: SqrtMathNode(s[3])
+    math_call %= cos + oPar + expression_4 + cPar, lambda h, s: CosMathNode(s[3])
+    math_call %= sin + oPar + expression_4 + cPar, lambda h, s: SinMathNode(s[3])
+    math_call %= tan + oPar + expression_4 + cPar, lambda h, s: TanMathNode(s[3])
+    math_call %= exp + oPar + expression_4 + cPar, lambda h, s: ExpMathNode(s[3])
     math_call %= (
         log + oPar + expression_4 + Comma + expression_4 + cPar,
         lambda h, s: LogCallNode(s[3], s[5]),
     )
-    math_call %= rand + oPar + cPar, lambda h, s: RangeNode()
-    base_args %= expression
-    base_args %= G.Epsilon
+    math_call %= rand + oPar + cPar, lambda h, s: RandomCallNode()
 
-    arguments %= base_args + Comma + arguments, lambda h, s: [s[1]] + s[2]
-    arguments %= base_args, lambda h, s: s[1]
+    arguments %= expression + Comma + arguments, lambda h, s: [s[1]] + s[2]
+    arguments %= expression, lambda h, s: s[1]
+    arguments %= G.Epsilon, lambda h, s: []
 
     # let in
     let_in %= assignment + In + non_create_statement, lambda h, s: LetInNode(s[1], s[3])
@@ -324,7 +353,8 @@ def gramm_Hulk_LR1():
         + statement_list
         + cBrace
         + method_definition,
-        lambda h, s: [MethodDefinitionNode(s[1], s[3], s[6])] + s[8],
+        lambda h, s: [MethodDefinitionNode(s[1], s[3], TypeNode("object"), s[6])]
+        + s[8],
     )
     method_definition %= G.Epsilon, lambda h, s: []
 
@@ -335,12 +365,10 @@ def gramm_Hulk_LR1():
         Let + identifier + Equal + New + def_Type + oPar + arguments + cPar + Semi,
         lambda h, s: InstanceCreationNode(s[2], s[5], s[7]),
     )
-    ###kern_instance_creation %= New + def_Type + oPar + arguments + cPar #todo Verificar la correctitud de  esto
     # method_override %= identifier + oPar + parameters + cPar + oBrace + statement_list + cBrace | G.Epsilon
+
     cont_member %= oPar + arguments + cPar, lambda h, s: s[2]
     cont_member %= G.Epsilon, lambda h, s: []
-
-    # member %= identifier + cont_member #todo## Verificar la correctitud de  esto
     member_access %= (
         factor + Dot + identifier + cont_member,
         lambda h, s: MemberAccesNode(s[1], s[3], s[4]),
