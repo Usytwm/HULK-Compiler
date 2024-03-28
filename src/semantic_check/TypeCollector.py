@@ -1,17 +1,12 @@
 from src.cmp.semantic import Context
 from src.cmp import visitor
-from tools.ast_nodes import (
-    BooleanNode,
+from src.tools.ast_nodes import (
     MethodDefinitionNode,
-    NumberNode,
     ProgramNode,
-    StringNode,
     TypeDefinitionNode,
 )
 
 
-# Dado que en este lenguaje los tipos pueden referenciarse antes de declararse,
-# se vuelve necesario realizar un primer recorrido del AST recolectando todos los tipos.
 class TypeCollector(object):
     def __init__(self, errors=[]):
         self.context = Context()
@@ -39,8 +34,9 @@ class TypeCollector(object):
         else:
             context.create_type(node.id)
 
+        child_context = context.create_child()
         for method in node.methods:
-            self.visit(method, context.create_child())
+            self.visit(method, child_context)
 
     @visitor.when(MethodDefinitionNode)
     def visit(self, node: MethodDefinitionNode, context: Context):

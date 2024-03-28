@@ -55,38 +55,35 @@ class KernAssigmentNode(Node):
         self.expression = expression
 
 
-# TODO Podriamos instanciar la clase Type
+class LetNode(Node):
+    def __init__(self, id, expression) -> None:
+        super().__init__()
+        self.id = id
+        self.expression = expression
+
+
 class TypeNode(Node):
     def __init__(self, type) -> None:
         super().__init__()
         self.type = type
 
 
-class FunctionDefinitionNode(Node):
-    def __init__(self, id, type_annotation, parameters, body) -> None:
-        super().__init__()
-        self.id = id
-        self.type_annotation = type_annotation
-        self.parameters = parameters
-        self.body = body
-
-
 # --------------------------------Non_Create-Statment-----------------------------------------------------------------------------------------------------------------------#
 
 
 class IfStructureNode(Node):
-    def __init__(self, condition, body, _elif, _else) -> None:
+    def __init__(self, expresion, body, _elif, _else) -> None:
         super().__init__()
-        self.condition = condition
+        self.expresion = expresion
         self.body = body
         self._elif = _elif
         self._else = _else
 
 
 class ElifStructureNode(Node):
-    def __init__(self, condition, body) -> None:
+    def __init__(self, expresion, body) -> None:
         super().__init__()
-        self.condition = condition
+        self.expresion = expresion
         self.body = body
 
 
@@ -97,26 +94,29 @@ class ElseStructureNode(Node):
 
 
 class WhileStructureNode(Node):
-    def __init__(self, condition, body) -> None:
+    def __init__(self, expresion, body) -> None:
         super().__init__()
-        self.condition = condition
+        self.expresion = expresion
         self.body = body
 
 
 class ForStructureNode(Node):
-    def __init__(self, init_assigments, condition, increment_assigment, body) -> None:
+    def __init__(self, init_assigments, expression, increment_assigment, body) -> None:
         super().__init__()
         self.init_assigments = init_assigments
-        self.condition = condition
+        self.expression = expression
         self.increment_condition = increment_assigment
         self.body = body
 
 
 # -----------------------------------Class----------------------------------------------------------------------------------------------#
 class TypeDefinitionNode(Node):
-    def __init__(self, id, inheritance, attributes, methods) -> None:
+    def __init__(
+        self, id, parameters: list[dict], inheritance, attributes, methods
+    ) -> None:
         super().__init__()
         self.id = id
+        self.parameters = parameters
         self.inheritance = inheritance
         self.attribute = attributes
         self.methods = methods
