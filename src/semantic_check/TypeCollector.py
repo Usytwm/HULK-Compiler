@@ -19,18 +19,16 @@ class TypeCollectorVisitor:
             
     @visitor.when(TypeDefinitionNode)
     def visit(self, node: TypeDefinitionNode, context: Context):
-        if context.is_defined(node.id):
-            self.errors.append(SemanticError(f'El nombre de tipo {node.id} ya ha sido tomado'))
-        else:
+        try:
             context.create_type(node.id)
+        except:
+            self.errors.append(
+                SemanticError(f"El nombre de tipo {node.id} ya ha sido tomado")
+            )
             
-        for method in node.methods:
-            inner_context = context.create_child(context)
-            self.visit(method, inner_context)
-            
-    @visitor.when(FunctionDefinitionNode)
-    def visit(self, node: FunctionDefinitionNode, context: Context):
-        for statment in node.body:
-            self.visit(statment, context)
+    #@visitor.when(FunctionDefinitionNode)
+    #def visit(self, node: FunctionDefinitionNode, context: Context):
+    #    for statment in node.body:
+    #        self.visit(statment, context)
             
     

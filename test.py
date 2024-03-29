@@ -14,7 +14,6 @@ text = 'let msg = \"Hello World\" in print(msg);'
 lexer = Lexer(
             build_regex(),
             "eof",
-            includesapces=True
         )
 
 tokens = lexer(text)
@@ -23,7 +22,7 @@ print("result_tokens")
 tokentypes = [token.token_type for token in tokens if token.token_type != 'space']
 print(tokentypes)
 parser = LR1Parser(grammar)
-#! derivation = parser(tokentypes) #Tacto  Exception: Aborting parsing, item is not viable.
+derivation = parser(tokentypes) #Tacto  Exception: Aborting parsing, item is not viable.
 #print(derivation)
 
 #[let: let, space:  , identifier: msg, space:  , =: =, space:  , string: "Hello World", space:  , in: in, space:  , print: print, (: (, identifier: msg, ): ), ;: ;, $: $]
