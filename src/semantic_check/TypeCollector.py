@@ -1,5 +1,5 @@
 from cmp.semantic import Context, SemanticError
-from cmp.visitor import visitor
+from src.cmp.visitor import visitor
 from tools.ast_nodes import *
 
 class TypeCollectorVisitor:

@@ -1,102 +1,54 @@
-from src.tools.ast_nodes import*
+from tools.ast_nodes import*
 from src.cmp.semantic import *
-from src.Semantic_Check.Semantic import*
-import Semantic_Check.Visitor as visitor
-
-# Pasemos ahora a construir los tipos.
-# Nótese que al haber recolectado ya todos los tipos, se logra que
-# los parámetros, valores de retorno, y otras refencias a tipos,
-# puedan ser resueltas en este recorrido sin problemas.            
-class TypeBuilderVisitor:
-    def __init__(self, context, errors=[]):
+import src.cmp.visitor as visitor
+           
+class TypeBuilderVisitor():
+    def __init__(self,context:Context) -> None:
         self.context = context
-        self.current_type: Type
-        self.types_nameTypes = {}
-        self.errors = errors
-    
+        self.currentType: Type
+        self.args = dict
+        
     @visitor.on('node')
     def visit(self, node, tabs):
         pass
-
-    @visitor.when(TypeDefinitionNode)
-    def visit(self, node: TypeDefinitionNode):
-        for classDef in node.classes:
+    
+    @visitor.when(ProgramNode)
+    def visit(self, node: ProgramNode):
+        for classDef in node.statments:
             self.visit(classDef)
 
-    @visitor.when(ProgramNode)
-    def visit(self,node):
-        for dec in node.declarations:
-            self.visit(dec)
-        return
-    @visitor.when(FunctionDefinitionNode)
-    def visit(self, node: FunctionDefinitionNode):
-        self.current_type = self.context.get_type(node.name)
-        for attrDef in node.attributes:
-            self.visit(attrDef)
-        for methDef in node.methods:
-            self.visit(methDef)
-
     @visitor.when(TypeDefinitionNode)
     def visit(self, node: TypeDefinitionNode):
-        self.current_type = self.context.get_type(node.id)
-        for param in node.parameters:
-            param = param[0]
-            if param not in self.types_nameTypes.key():
-                self.types_nameTypes.update(param.key, param.value)
-                self.current_type.define_atr
-            else:
-                if self.types_nameTypes[param.key] != param.value:
-                    raise Exception("")
-        for attrDef in node.attributes:
+        self.currentType = self.context.get_type(node.id) 
+        arg_types = [self.context.get_type(t[0].value) for t in node.parameters]
+        
+        arg_names = [self.context.get_type(t[0].key) for t in node.parameters]
+        
+        for i in range(arg_names):
+            self.currentType.define_attribute(arg_names[i],arg_types[i])        
+            self.args.update(self.currentType.name, self.currentType)       
+            
+        
+       # self.currentType.attributes(arg_types)
+        for attrDef in node.attribute:
             self.visit(attrDef)
-        for methDef in node.methods:
-            self.visit(methDef)
-
+        for methodDef in node.methods:
+            self.visit(methodDef)
+    
     @visitor.when(KernAssigmentNode)
     def visit(self, node: KernAssigmentNode):
-        attr_type = self.context.get_type(node.type)
-        #self.current
-        param = node.id
-        if param not in self.types_nameTypes.key():
-            self.types_nameTypes.update(param.key, TypeNode('object'))
+        if node.id in self.args:    
+            self.currentType.define_attribute(node.id,self.args[node.id])
         else:
-            if self.types_nameTypes[param.key] != param.value:
-                raise Exception("")
-    @visitor.when(KernAssigmentNode)
-    
-    # @visitor.when(ClassDeclarationNode)
-    # def visit(self,node):
-    #     try:
-    #         self.current_type = self.context.get_type(node.id)
-    #         if node.parent is not None:
-    #             self.current_type.set_parent(self.context.get_type(node.parent))
-                   
-    #     except SemanticError as se:
-    #         self.errors.append(se.text)
+            attr_type = self.context.get_type(node.id)
+            if self.currentType.get_attribute(node.id,attr_type) is not None: 
+                self.currentType.define_attribute(node.id,attr_type)
+            else:
+                self.currentType.define_attribute(node.id,Type('object'))    
         
-    #     for feat in node.features:
-    #         self.visit(feat)
-    #     return
-    
-    # @visitor.when(AttrDeclarationNode)
-    # def visit(self,node):
-    #     try:
-    #         attrType = self.context.get_type(node.type)
-    #         self.current_type.define_attribute(node.id,attrType)
-    #     except SemanticError as se:
-    #         self.errors.append(se.text)
-    #     return
-
-    @visitor.when(FuncDeclarationNode)
-    def visit(self,node):
-        try:
-            returnType = self.context.get_type(node.type)
-            param_names = []
-            param_types = []
-            for param in node.params:
-                param_names.append(param[0])
-                param_types.append(self.context.get_type(param[1]))
-            self.current_type.define_method(node.id,param_names,param_types,returnType)
-        except SemanticError as se:
-            self.errors.append(se.text)
-        return
+    @visitor.when(FunctionDefinitionNode)
+    def visit(self, node: FunctionDefinitionNode):
+        return_type = self.context.get_type(node.type_annotation)
+        arg_types = [self.context.get_type(t[0].value)  if t[0].value in self.context else Type('object') for t in node.parameters]
+        arg_names = [t[0].key for t in node.parameters if t[0].key in self.context]
+        self.currentType.define_method(node.id, arg_names, arg_types, return_type)
