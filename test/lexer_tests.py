@@ -422,16 +422,21 @@ class TestLexer(unittest.TestCase):
                 build_regex(),
                 "eof",
             )
+            result_tokens = lexer(content)
+            print(result_tokens)
 
-        result_tokens = lexer(content)
 
+        
     def assertLexerOutput(self, input_text, expected_tokens: list[Token]):
         lexer = Lexer(
             build_regex(),
             "eof",
         )
+        
 
         result_tokens = lexer(input_text)
+        print("Resultado")
+        print(result_tokens)
         # Iterar sobre los tokens resultantes y los esperados
         for i, (result, expected) in enumerate(zip(result_tokens, expected_tokens)):
             # Utilizar assertEqual para comparar los lexemas y tipos de tokens, con un mensaje de error personalizado
