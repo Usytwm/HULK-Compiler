@@ -4,12 +4,12 @@ from cmp.semantic import Context, Scope, SemanticError, Type
 
 
 class TypeCheckerVisitor:
-    def __init__(self, context, errors) -> None:
+    def __init__(self, context: Context, scope: Scope, errors) -> None:
         self.context: Context = context
         self.errors: List[str] = errors
 
         # ------------------Inicializando funciones por defecto-----------------------------------------------#
-        self.scope = Scope(parent=None)
+        self.scope = scope
         self.default_functions = ["print", "sen", "cos", "sqrt", "exp"]
         for func in self.default_functions:
             self.scope.functions[func] = [1]
@@ -30,7 +30,7 @@ class TypeCheckerVisitor:
             self.visit(statment, self.scope)
 
     @visitor.when(PrintStatmentNode)
-    def visit(self, node: PrintStatmentNode, scope):
+    def visit(self, node: PrintStatmentNode, scope: Scope):
         print("visitor en PrintNode")
         self.visit(node.expression, scope)
 

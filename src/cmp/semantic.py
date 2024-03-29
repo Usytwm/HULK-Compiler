@@ -218,7 +218,7 @@ class Scope:
         self.locals = []
         self.parent = parent
         self.children = []
-        self.functions: Dict[str, List] = {}
+        self.functions: Dict[str, List[Method]] = {}
         self.index = 0 if parent is None else len(parent)
 
     def __len__(self):

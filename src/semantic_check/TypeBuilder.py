@@ -4,8 +4,10 @@ import src.cmp.visitor as visitor
 
 
 class TypeBuilderVisitor:
-    def __init__(self, context: Context) -> None:
+    def __init__(self, context: Context, scope: Scope, errors) -> None:
         self.context = context
+        self.scope = scope
+        self.errors = errors
         self.currentType: Type
         self.args = dict
 
