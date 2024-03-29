@@ -1,4 +1,4 @@
-from cmp.pycompiler import Production, Sentence, Symbol, EOF, Epsilon
+from src.cmp.pycompiler import Production, Sentence, Symbol, EOF, Epsilon
 
 
 class ContainerSet:
@@ -132,6 +132,11 @@ class Token:
     def __init__(self, lex, token_type):
         self.lex = lex
         self.token_type = token_type
+
+    def __eq__(self, other):
+        if not isinstance(other, Token):
+            return NotImplemented
+        return self.lex == other.lex and self.token_type == other.token_type
 
     def __str__(self):
         return f"{self.token_type}: {self.lex}"

@@ -1,16 +1,14 @@
-#from src.cmp.pycompiler import Grammar
-
+from src.cmp.pycompiler import Grammar
+from src.cmp.pycompiler import Item
+from src.cmp.utils import ContainerSet
+from src.tools.parsing import compute_local_first, compute_firsts
+from src.cmp.automata import multiline_formatter, State
 import sys
 import os
 
 current_dir = os.getcwd()
 sys.path.insert(0, current_dir)
 
-from src.cmp.pycompiler import Item
-from src.cmp.utils import ContainerSet
-from src.tools.parsing import compute_local_first, compute_firsts
-from src.cmp.automata import multiline_formatter, State
-"""""
 class ShiftReduceParser:
     SHIFT = 'SHIFT'
     REDUCE = 'REDUCE'
@@ -90,100 +88,6 @@ class LR1Parser(ShiftReduceParser):
     def _register(table, key, value):
         assert key not in table or table[key] == value, 'Shift-Reduce or Reduce-Reduce conflict!!!'
         table[key] = value
-
-"""""
-
-from src.cmp.pycompiler import Grammar
-from src.cmp.pycompiler import Item
-from src.cmp.utils import ContainerSet
-from src.tools.parsing import compute_local_first, compute_firsts
-from src.cmp.automata import multiline_formatter, State
-
-class ShiftReduceParser:
-    SHIFT = 'SHIFT'
-    REDUCE = 'REDUCE'
-    OK = 'OK'
-    
-    def __init__(self, G, verbose=False):
-        self.G = G
-        self.verbose = verbose
-        self.action = {}
-        self.goto = {}
-        self._build_parsing_table()
-    
-    def _build_parsing_table(self):
-        raise NotImplementedError()
-
-    def __call__(self, w):
-        stack = [ 0 ]
-        cursor = 0
-        output = []
-        
-        while True:
-            state = stack[-1]
-            lookahead = w[cursor]
-            if self.verbose: print(stack, w[cursor:])
-                
-            try:
-                action, tag = self.action[state, lookahead]
-                if action == ShiftReduceParser.SHIFT:
-                    stack.append(tag)
-                    cursor += 1
-                elif action == ShiftReduceParser.REDUCE:
-                    for _ in range(len(tag.Right)): stack.pop()
-                    stack.append(self.goto[stack[-1], tag.Left])
-                    output.append(tag)
-                elif action == ShiftReduceParser.OK:
-                    return output
-                else:
-                    assert False, 'Must be something wrong!'
-            except KeyError:
-                raise Exception('Aborting parsing, item is not viable.')
-
-class LR1Parser(ShiftReduceParser):
-    def _build_parsing_table(self):
-        G = self.G.AugmentedGrammar(True)
-        
-        automaton = build_LR1_automaton(G)
-        for i, node in enumerate(automaton):
-            if self.verbose: print(i, '\t', '\n\t '.join(str(x) for x in node.state), '\n')
-            node.idx = i
-
-        for node in automaton:
-            idx = node.idx
-            for item in node.state:
-                if item.IsReduceItem:
-                    prod = item.production
-                    if prod.Left == G.startSymbol:
-                        LR1Parser._register(self.action, (idx, G.EOF), (ShiftReduceParser.OK, None))
-                    else:
-                        for lookahead in item.lookaheads:
-                            LR1Parser._register(self.action, (idx, lookahead), (ShiftReduceParser.REDUCE, prod))
-                else:
-                    next_symbol = item.NextSymbol
-                    if next_symbol.IsTerminal:
-                        LR1Parser._register(self.action, (idx, next_symbol), (ShiftReduceParser.SHIFT, node[next_symbol.Name][0].idx))
-                    else:
-                        LR1Parser._register(self.goto, (idx, next_symbol), node[next_symbol.Name][0].idx)
-        
-        # Función para imprimir los cambios en la tabla de acción y desplazamiento
-        self._print_parsing_table_changes()
-
-    @staticmethod
-    def _register(table, key, value):
-        assert key not in table or table[key] == value, 'Shift-Reduce or Reduce-Reduce conflict!!!'
-        table[key] = value
-
-    def _print_parsing_table_changes(self):
-        print("Tabla de acción:")
-        for key, value in self.action.items():
-            print(f"{key}: {value}")
-        print("\nTabla de desplazamiento:")
-        for key, value in self.goto.items():
-            print(f"{key}: {value}")
-
-# Las funciones expand, compress, closure_lr1, goto_lr1, y build_LR1_automaton permanecen igual.
-
 
 def expand(item, firsts):
     next_symbol = item.NextSymbol

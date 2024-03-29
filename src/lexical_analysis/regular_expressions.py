@@ -14,6 +14,10 @@ from src.cmp.utils import Token
 from src.tools.parsing import evaluate_parse, metodo_predictivo_no_recursivo
 
 
+def get_all_character():
+    return [chr(i) for i in range(32, 127)]
+
+
 class EpsilonNode(AtomicNode):
     def evaluate(self):
         return DFA(states=1, finals=[0], transitions={})
@@ -43,26 +47,37 @@ class ConcatNode(BinaryNode):
         return automata_concatenation(lvalue, rvalue)
 
 
-# def regex_tokenizer(text, G, skip_whitespaces=True):
-#     tokens = []
-#     # > fixed_tokens = ???
-#     fixed_tokens = {lex: Token(lex, G[lex]) for lex in "| * + - ? ( ) [ ] ε".split()}
-#     for char in text:
-#         if skip_whitespaces and char.isspace():
-#             continue
-#         try:
-#             tokens.append(fixed_tokens[char])
-#         except KeyError:
-#             tokens.append(Token(char, G["symbol"]))
+class NegatedSetNode(UnaryNode):
+    @staticmethod
+    def operate(value):
+        all_chars = get_all_character()
+        states = 3
+        finals = {1}
+        transitions = {}
 
-#     tokens.append(Token("$", G.EOF))
-#     return tokens
+        transitions[(0, "\\")] = [2]
+        transitions[(2, '"')] = [3]
+        transitions[(2, "n")] = [3]
+        transitions[(2, "t")] = [3]
+        transitions[(2, "r")] = [3]
+
+        for char in all_chars:
+            if char == "\\" or char == '"':
+                continue
+            if char not in value.vocabulary:
+                transitions[(0, char)] = [1]
+
+        return NFA(
+            states,
+            finals,
+            transitions,
+        )
 
 
 def regex_tokenizer(text, G, skip_whitespaces=True):
     tokens = []
     # > fixed_tokens = ???
-    fixed_tokens = {lex: Token(lex, G[lex]) for lex in "| * + - ? ( ) [ ] ε".split()}
+    fixed_tokens = {lex: Token(lex, G[lex]) for lex in "| * + - ? ( ) ^ [ ] ε".split()}
 
     literal = False
 
@@ -89,39 +104,14 @@ def regex_tokenizer(text, G, skip_whitespaces=True):
 
 
 def build_grammar():
-    # G = Grammar()
-
-    # E = G.NonTerminal("E", True)
-    # T, F, A, X, Y, Z = G.NonTerminals("T F A X Y Z")
-    # pipe, star, opar, cpar, symbol, epsilon = G.Terminals("| * ( ) symbol ε")
-
-    # # > PRODUCTIONS???
-    # E %= T + X, lambda h, s: s[2], None, lambda h, s: s[1]
-
-    # X %= pipe + T + X, lambda h, s: s[3], None, None, lambda h, s: UnionNode(h[0], s[2])
-    # X %= G.Epsilon, lambda h, s: h[0]
-
-    # T %= F + Y, lambda h, s: s[2], None, lambda h, s: s[1]
-
-    # Y %= F + Y, lambda h, s: s[2], None, lambda h, s: ConcatNode(h[0], s[1])
-    # Y %= G.Epsilon, lambda h, s: h[0]
-
-    # F %= A + Z, lambda h, s: s[2], None, lambda h, s: s[1]
-
-    # Z %= star, lambda h, s: ClosureNode(h[0]), None
-    # Z %= G.Epsilon, lambda h, s: h[0]
-
-    # A %= epsilon, lambda h, s: EpsilonNode(s[1]), None
-    # A %= symbol, lambda h, s: SymbolNode(s[1]), None
-    # A %= opar + E + cpar, lambda h, s: s[2], None, None, None
     EPSILON = "ε"
 
     G = Grammar()
 
     E = G.NonTerminal("E", True)
-    T, F, A, X, Y, Z, W, J = G.NonTerminals("T F A X Y Z W J")
-    pipe, star, plus, minus, question, opar, cpar, obra, cbra, symbol, epsilon = (
-        G.Terminals("| * + - ? ( ) [ ] symbol ε")
+    T, F, A, X, Y, Z, C, W, J = G.NonTerminals("T F A X Y Z C W J")
+    pipe, star, plus, minus, question, opar, cpar, obra, cbra, symbol, no, epsilon = (
+        G.Terminals("| * + - ? ( ) [ ] symbol ^ ε")
     )
 
     # > PRODUCTIONS???
@@ -145,14 +135,10 @@ def build_grammar():
     A %= epsilon, lambda h, s: EpsilonNode(s[1]), None
     A %= symbol, lambda h, s: SymbolNode(s[1]), None
     A %= opar + E + cpar, lambda h, s: s[2], None, None, None
-    A %= (
-        obra + symbol + W + cbra,
-        lambda h, s: s[3],
-        None,
-        None,
-        lambda h, s: SymbolNode(s[2]),
-        None,
-    )
+    A %= obra + C, lambda h, s: s[2], None, None
+
+    C %= symbol + W + cbra, lambda h, s: s[2], None, lambda h, s: SymbolNode(s[1]), None
+    C %= no + E + cbra, lambda h, s: NegatedSetNode(s[2]), None, None, None
 
     W %= (
         symbol + W,
