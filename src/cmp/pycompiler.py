@@ -328,7 +328,7 @@ class Grammar:
         if len(self.Productions) == 0:
             self.pType = type(production)
 
-        assert type(production) == self.pType, "The Productions most be of only 1 type."
+        #assert type(production) == self.pType, "The Productions most be of only 1 type."
 
         production.Left.productions.append(production)
         self.Productions.append(production)

@@ -17,32 +17,27 @@ def report_and_exit(errors):
 
 
 def pipeline(input_file: Path, output_file: Path = None):
+
     errors = []
-
-    if not input_file.is_file:
-        pass
-
-    if len(errors) > 0:
-        report_and_exit(errors)
 
     text = input_file.read_text()
 
     # define grammar
-    grammar, idx, type_id, string, num = gramm_Hulk_LR1()
+    grammar= gramm_Hulk_LR1()
 
-    tokens = Lexer(grammar, idx, type_id, string, num, text, errors)
+    tokens = Lexer(text)
 
-    if len(errors) > 0:
-        report_and_exit(errors)
-    parser = LR1Parser(grammar, errors)
+    parser = LR1Parser(grammar)
 
-    if len(errors) > 0:
-        report_and_exit(errors)
 
-    parse, operations = parser(tokens)
+    # Extraer las propiedades "tokentype" de cada token
+    tokentypes = [token.token_type for token in tokens if token.token_type != 'space']
 
-    if len(errors) > 0:
-        report_and_exit(errors)
+    print(tokentypes)
+
+    derivation = parser(tokentypes)
+    print(derivation)
+
 
     """""
     # print("-------------------------------Initial AST-------------------------------")
