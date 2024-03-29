@@ -67,7 +67,7 @@ class TypeCheckerVisitor:
             return self.context.get_type("object")
 
     @visitor.when(FunctionDefinitionNode)
-    def visit(self, node: FunctionCallNode, scope: Scope):
+    def visit(self, node: FunctionDefinitionNode, scope: Scope):
         if node.id in self.default_functions:
             self.errors.append(
                 SemanticError(
@@ -75,24 +75,25 @@ class TypeCheckerVisitor:
                 )
             )
 
-            # * En los nodos que no son expresiones aritmeticas o booleanas o concatenacion dberia ponerle qu etiene typo object?
+            # * En los nodos que no son expresiones aritmeticas o booleanas o concatenacion dberia ponerle que tiene typo object?
             return self.context.get_type("object")
 
         try:
-            args_len_list = scope.functions[id]
-            if len(node.args) in args_len_list:
-                self.errors.append(
-                    SemanticError(
-                        f"La funcion {node.id} ya esta definida con {len(node.args)} cantidad de parametros."
-                    )
-                )
+            args_len = scope.functions[node.id]
+            current_args_len = len(node.parameters)
+            if current_args_len in args_len:
+                self.errors.append(f"La función {node.id} ya sta definida")
+            else:
+                scope.functions[node.id].append(current_args_len)
+
         except:
-            # TODO Se puede instanciar la clase Method de semantic~seria algo similar a scope.functions[node.id] = nodmethod(node. ...)
-            # * Por el momento en el diccionario tengo el id de la funcion con su cantidad de parametros
-            scope.functions[node.id].append(len(node.args))
-            # ----------------------------------------Checkeo de tipos--------------------------------------------------------------------------------------------------------------#
-            for arg in node.args:
-                self.visit(arg, scope)
+            scope.functions[node.id].append(len(node.parameters))
+        child_scope = scope.create_child()
+        for vname, vtype in node.parameters:
+            child_scope.define_variable(vname, self.visit(vtype, child_scope))
+
+        for statment in node.body:
+            self.visit(statment, child_scope)
 
     # ----------------------------------------Checkeo de tipos--------------------------------------------------------------------------------------------------------------#
 
