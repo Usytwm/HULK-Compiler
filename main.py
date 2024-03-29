@@ -1,4 +1,4 @@
-from src.syntax_analysis.grammar_LR1 import gramm_Hulk_LR1
+from src.syntax_analysis.grammLR1 import gramm_Hulk_LR1
 from src.syntax_analysis.LR1Parser import LR1Parser
 from src.lexical_analysis.lexer import Lexer
 from pathlib import Path
