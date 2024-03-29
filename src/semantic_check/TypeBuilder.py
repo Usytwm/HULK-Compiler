@@ -4,7 +4,7 @@ import src.cmp.visitor as visitor
 
 
 class TypeBuilderVisitor:
-    def __init__(self, context: Context, scope: Scope, errors) -> None:
+    def __init__(self, context: Context, scope: Scope, errors: List[str]) -> None:
         self.context = context
         self.scope = scope
         self.errors = errors
@@ -26,7 +26,7 @@ class TypeBuilderVisitor:
         arg_types = [self.context.get_type(t[0].value) for t in node.parameters]
 
         arg_names = [self.context.get_type(t[0].key) for t in node.parameters]
-
+        #!aki creoq ue no se le sta asano los nombres, sino que sta crenado tipos y eso es solo la lista de los nombres
         for i in range(arg_names):
             self.currentType.define_attribute(arg_names[i], arg_types[i])
             self.args.update(self.currentType.name, self.currentType)
@@ -35,6 +35,9 @@ class TypeBuilderVisitor:
             self.visit(attrDef)
         for methodDef in node.methods:
             self.visit(methodDef)
+
+        # actualizacion por si veo un metodo
+        self.currentType = None
 
     @visitor.when(KernAssigmentNode)
     def visit(self, node: KernAssigmentNode):
@@ -59,4 +62,22 @@ class TypeBuilderVisitor:
             for t in node.parameters
         ]
         arg_names = [t[0].key for t in node.parameters if t[0].key in self.context]
-        self.currentType.define_method(node.id, arg_names, arg_types, return_type)
+        #!aki que garantiza que currentype este dentro o fuera de una clase
+        if self.currentType:
+            try:
+                self.currentType.define_method(
+                    node.id, arg_names, arg_types, return_type
+                )
+            except:
+                self.errors.append(f"La funcion {node.id} ya existe en el contexto")
+        else:
+            exist = False
+            for func in self.scope.functions[node.id]:
+                if len(arg_names) == len(func.param_names):
+                    exist = True
+                    break
+            if exist:
+                self.errors.append(f"La funcion {node.id} ya existe en el contexto")
+            else:
+                method = Method(node.id, arg_names, arg_types, return_type)
+                self.scope.functions[node.id].append(method)

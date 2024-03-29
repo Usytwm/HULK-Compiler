@@ -9,7 +9,7 @@ errors = []
 # define grammar
 grammar = gramm_Hulk_LR1()
 
-text = 'let msg = "Hello World" in print(msg);'
+text = 'x = hola => print ( "Hola Mundo" ) \n \t x=8;'
 
 
 lexer = Lexer(
@@ -17,14 +17,12 @@ lexer = Lexer(
     "eof",
 )
 
+
 tokens = lexer(text)
 print(tokens)
-print("result_tokens")
 tokentypes = [token.token_type for token in tokens]
 print(tokentypes)
 parser = LR1Parser(grammar)
-#! derivation = parser(tokentypes) #Tacto  Exception: Aborting parsing, item is not viable.
-# print(derivation)
 
-# [let: let, space:  , identifier: msg, space:  , =: =, space:  , string: "Hello World", space:  , in: in, space:  , print: print, (: (, identifier: msg, ): ), ;: ;, $: $]
-# [let: let, id: msg, assign: =, lit: "Hello World", in: in, print: print, opar: (, id: msg, cpar: ), semicolon: ;, eof: $]
+derivation = parser(tokentypes)
+print(derivation)
