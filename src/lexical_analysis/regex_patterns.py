@@ -2,6 +2,7 @@ from src.syntax_analysis.grammLR1 import *
 
 
 def build_regex():
+
     return [
         # numeros
         (number, "(\-|\+)?(0|[1-9][0-9]*)(\.[0-9]+)?([eE][\+\-]?[0-9]+)?"),
