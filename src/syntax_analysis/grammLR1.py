@@ -94,8 +94,8 @@ if_structure, while_structure, for_structure, create_statement, non_create_state
     True_,
     False_,
 ) = G.Terminals("and or not < > == <= >= != is in True False")
-Comma, Dot, If, Else, While, For, Let, Function, Colon = G.Terminals(
-    ", . if else while for let function :"
+Comma, Dot, If, Else, While, For, Let, Function, Colon, PowStar = G.Terminals(
+    ", . if else while for let function : **"
 )
 identifier, number, string, Elif, Type, Inherits, New, In, arroba, PI = G.Terminals(
     "identifier number string elif type inherits new in @ PI"
@@ -108,10 +108,11 @@ sqrt, sin, cos, tan, exp, log, rand = G.Terminals("sqrt sin cos tan exp log rand
 
 Program %= statement_list, lambda h, s: ProgramNode(s[1])
 statement_list %= statement + statement_list, lambda h, s: [s[1]] + s[2]
-statement_list %= G.Epsilon, lambda h, s: []
 statement_list %= oBrace + statement_list + cBrace, lambda h, s: s[2]
+statement_list %= G.Epsilon, lambda h, s: []
 
 statement %= non_create_statement, lambda h, s: s[1]
+statement %= assignment + Semi, lambda h, s: s[1]
 statement %= create_statement, lambda h, s: s[1]
 
 non_create_statement %= control_structure, lambda h, s: s[1]
@@ -119,19 +120,13 @@ non_create_statement %= expr_statement + Semi, lambda h, s: s[1]
 
 create_statement %= type_definition, lambda h, s: s[1]
 create_statement %= function_definition, lambda h, s: s[1]
-# create_statement %= assignment, lambda h, s: s[1]
 create_statement %= destructive_assignment + Semi, lambda h, s: s[1]
 
 expr_statement %= print_statement, lambda h, s: s[1]
 expr_statement %= expression, lambda h, s: s[1]
-print_statement %= (
-    Print + oPar + expression + cPar,
-    lambda h, s: PrintStatmentNode(s[3]),
+print_statement %= Print + oPar + expression + cPar, lambda h, s: PrintStatmentNode(
+    s[3]
 )
-
-# let_in_as_expr %= assignment + In + oPar + expr_statement + cPar, lambda h, s: LetInNode(s[1], s[4])
-# let_in %= let_in_as_expr, lambda h,s: s[1]
-# let_in %= assignment + In + oBrace + statement_list + cBrace, lambda h, s: LetInNode(s[1], s[3])
 
 kern_assignment %= (
     identifier + Equal + kern_instance_creation,
@@ -189,8 +184,8 @@ multi_assignment %= (
     kern_assignment + Comma + multi_assignment,
     lambda h, s: [s[1]] + s[3],
 )
-multi_assignment %= kern_assignment + Semi, lambda h, s: [s[1]]
-kern_assignment %= identifier + Equal + expression, lambda h, s: KernAssigmentNode(
+multi_assignment %= kern_assignment, lambda h, s: [s[1]]
+kern_assignment %= identifier + Equal + expr_statement, lambda h, s: KernAssigmentNode(
     s[1], s[3]
 )
 
@@ -205,32 +200,30 @@ destructive_assignment %= identifier + Destroy + expression, lambda h, s: [
 function_definition %= (
     Function
     + identifier
-    + type_annotation  #!cambiar esto despues de los parametros
     + oPar
     + parameters
     + cPar
+    + type_annotation
     + oBrace
     + statement_list
     + cBrace,
-    lambda h, s: FunctionDefinitionNode(s[2], s[3], s[5], s[8]),
+    lambda h, s: FunctionDefinitionNode(s[2], s[6], s[4], s[8]),
 )
 function_definition %= (
     Function
     + identifier
-    + type_annotation
     + oPar
     + parameters
     + cPar
+    + type_annotation
     + Arrow
-    + non_create_statement
-    + Semi,
-    lambda h, s: FunctionDefinitionNode(s[2], s[3], s[5], s[8]),
+    + non_create_statement,
+    lambda h, s: FunctionDefinitionNode(s[2], s[6], s[4], s[8]),
 )
 
-parameters %= (
-    expression + type_annotation + Comma + parameters,
-    lambda h, s: [{s[1]: s[2]}] + s[4],
-)
+parameters %= expression + type_annotation + Comma + parameters, lambda h, s: [
+    {s[1]: s[2]}
+] + [s[4]]
 parameters %= expression + type_annotation, lambda h, s: {s[1]: s[2]}
 parameters %= G.Epsilon, lambda h, s: []
 
@@ -284,7 +277,8 @@ term %= term + Mod + factorPow, lambda h, s: ModExpressionNode(s[1], s[3])
 
 factorPow %= factor, lambda h, s: s[1]
 factorPow %= factor + Pow + factorPow, lambda h, s: PowExpressionNode(s[1], s[3])
-# term / .... -> let_in_expr
+factorPow %= factor + PowStar + factorPow, lambda h, s: PowExpressionNode(s[1], s[3])
+
 factor %= oPar + expr_statement + cPar, lambda h, s: s[2]
 factor %= number, lambda h, s: NumberNode(s[1])
 factor %= string, lambda h, s: StringNode(s[1])
@@ -332,12 +326,15 @@ arguments %= G.Epsilon, lambda h, s: []
 type_definition %= (
     Type
     + identifier
+    + oPar
+    + parameters
+    + cPar
     + inheritance
     + oBrace
     + attribute_definition
     + method_definition
     + cBrace,
-    lambda h, s: TypeDefinitionNode(s[2], s[3], s[5], s[6]),
+    lambda h, s: TypeDefinitionNode(s[2], s[4], s[6], s[8], s[9]),
 )
 
 attribute_definition %= attribute_definition + kern_assignment + Semi, lambda h, s: s[
@@ -350,17 +347,17 @@ method_definition %= (
     + oPar
     + parameters
     + cPar
+    + type_annotation
     + oBrace
     + statement_list
     + cBrace
     + method_definition,
-    lambda h, s: [FunctionDefinitionNode(s[1], s[3], s[6])] + s[8],
+    lambda h, s: [FunctionDefinitionNode(s[1], s[5], s[3], s[7])] + s[8],
 )
 method_definition %= G.Epsilon, lambda h, s: []
 
 inheritance %= Inherits + identifier, lambda h, s: InheritanceNode(s[2])
 inheritance %= G.Epsilon, lambda h, s: InheritanceNode("object")
-
 EOF = G.EOF
 
 
