@@ -5,10 +5,20 @@ from src.lexical_analysis.lexer import Lexer
 from src.lexical_analysis.regex_patterns import build_regex
 from src.syntax_analysis.grammLR1 import EOF, gramm_Hulk_LR1
 
+# path = "test/Data/prueba.txt"
+# with open(path, "r", encoding="utf-8") as archivo:
+#     content = archivo.read()
+#     lexer = Lexer(
+#         build_regex(),
+#         "eof",
+#     )
 
 # define grammar
 grammar = gramm_Hulk_LR1()
-text = "print(42);"
+text = """type Point {
+    x = 0;
+    y = 0;
+}"""
 
 lexer = Lexer(
     build_regex(),

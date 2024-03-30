@@ -4,7 +4,6 @@ from src.syntax_analysis.grammLR1 import *
 def build_regex():
 
     return [
-        # numeros
         (number, "(\-|\+)?(0|[1-9][0-9]*)(\.[0-9]+)?([eE][\+\-]?[0-9]+)?"),
         ("space", "( )*|\n|\t"),
         (Equal, "="),
@@ -19,7 +18,8 @@ def build_regex():
         (NotEqual, "!="),
         (Print, "print"),
         (If, "if"),
-        (Elif, "elif")(Else, "else"),
+        (Elif, "elif"),
+        (Else, "else"),
         (Let, "let"),
         (In, "in"),
         (For, "for"),
@@ -27,7 +27,8 @@ def build_regex():
         (Function, "function"),
         (Type, "type"),
         (Inherits, "inherits"),
-        (New, "new")(arroba, "@"),
+        (New, "new"),
+        (arroba, "@"),
         (sqrt, "sqrt"),
         (sin, "sin"),
         (cos, "cos"),

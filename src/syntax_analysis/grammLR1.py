@@ -205,7 +205,7 @@ destructive_assignment %= identifier + Destroy + expression, lambda h, s: [
 function_definition %= (
     Function
     + identifier
-    + type_annotation
+    + type_annotation  #!cambiar esto despues de los parametros
     + oPar
     + parameters
     + cPar
@@ -242,7 +242,7 @@ ExprAnd, ExprNeg, ExprIsType, ExprComp, ExprNum, ExprOr = G.NonTerminals(
 )
 
 expression %= ExprOr, lambda h, s: s[1]
-expression %= expression + arroba + ExprOr, lambda h, s: StringConcatNode(s[1], s[4])
+expression %= expression + arroba + ExprOr, lambda h, s: StringConcatNode(s[1], s[3])
 expression %= (
     expression + arroba + arroba + ExprOr,
     lambda h, s: StringConcatWithSpaceNode(s[1], s[4]),
@@ -322,7 +322,7 @@ math_call %= log + oPar + ExprNum + Comma + ExprNum + cPar, lambda h, s: LogCall
     s[3], s[5]
 )
 math_call %= rand + oPar + cPar, lambda h, s: RandomCallNode()
-math_call %= PI, lambda h, s: PINode(3.1415)
+math_call %= PI, lambda h, s: PINode()
 
 arguments %= expr_statement + Comma + arguments, lambda h, s: [s[1]] + s[2]
 arguments %= expr_statement, lambda h, s: s[1]
