@@ -45,8 +45,10 @@ class Method:
 class Type:
     def __init__(self, name: str):
         self.name = name
-        self.attributes = []
-        self.methods = []
+        self.attributes: List[Attribute] = []
+        self.methods: List[Method] = []
+        self.args: List[Arguments] = []
+        self.inheritance: Type = None
         self.parent = None
 
     def set_parent(self, parent):
@@ -102,6 +104,33 @@ class Type:
         self.methods.append(method)
         return method
 
+    def get_args(self, name: str):
+        try:
+            return next(args for args in self.args if args.name == name)
+        except StopIteration:
+            if self.parent is None:
+                raise SemanticError(
+                    f'Arguments "{name}" is not defined in {self.name}.'
+                )
+            try:
+                return self.parent.get_args(name)
+            except SemanticError:
+                raise SemanticError(
+                    f'Arguments "{name}" is not defined in {self.name}.'
+                )
+
+    def define_argument(self, name: str, typex):
+        try:
+            self.get_args(name)
+        except SemanticError:
+            argument = Arguments(name, typex)
+            self.args.append(argument)
+            return argument
+        else:
+            raise SemanticError(
+                f'Arguments "{name}" is already defined in {self.name}.'
+            )
+
     def all_attributes(self, clean=True):
         plain = (
             OrderedDict() if self.parent is None else self.parent.all_attributes(False)
@@ -139,6 +168,18 @@ class Type:
         output += "\n" if self.methods else ""
         output += "}\n"
         return output
+
+    def __repr__(self):
+        return str(self)
+
+
+class Arguments:
+    def __init__(self, name, typex: Type):
+        self.name = name
+        self.type = typex
+
+    def __str__(self):
+        return f"[argument] {self.name} : {self.type.name};"
 
     def __repr__(self):
         return str(self)

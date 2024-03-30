@@ -29,6 +29,7 @@ class ShiftReduceParser:
         stack = [0]
         cursor = 0
         output = []
+        operations = []
 
         while True:
             state = stack[-1]
@@ -41,22 +42,38 @@ class ShiftReduceParser:
                 action, tag = self.action[state, lookahead]
                 # Shift case
                 if action == ShiftReduceParser.SHIFT:
+                    operations.append(ShiftReduceParser.SHIFT)
                     stack.append(tag)
                     cursor += 1
                 # Reduce case
                 elif action == ShiftReduceParser.REDUCE:
                     for _ in range(len(tag.Right)):
                         stack.pop()
+                    operations.append(ShiftReduceParser.REDUCE)
                     stack.append(self.goto[stack[-1], tag.Left])
                     output.append(tag)
                 # OK case
                 elif action == ShiftReduceParser.OK:
-                    return output
+                    return output, operations
                 # Invalid case
                 else:
                     assert False, "Must be something wrong!"
             except KeyError:
                 raise Exception("Aborting parsing, item is not viable.")
+
+    def __iter__(self):
+        # El iterador es el objeto mismo en este caso.
+        return self
+
+    def __next__(self):
+        # Incrementar el contador.
+        if self.actual < self.alto:
+            num = self.actual
+            self.actual += 1
+            return num
+        else:
+            # No hay más elementos, detener la iteración.
+            raise StopIteration
 
 
 class LR1Parser(ShiftReduceParser):
