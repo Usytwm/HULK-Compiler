@@ -1,5 +1,5 @@
-from src.cmp.pycompiler import EOF
-from src.syntax_analysis.LR1Parser import ShiftReduceParser
+from cmp.pycompiler import EOF
+from LR1Parser import ShiftReduceParser
 
 
 def evaluate_reverse_parse(right_parse, operations, tokens):
@@ -12,7 +12,7 @@ def evaluate_reverse_parse(right_parse, operations, tokens):
     for operation in operations:
         if operation == ShiftReduceParser.SHIFT:
             token = next(tokens)
-            stack.append(token.lex)
+            stack.append(token)
         elif operation == ShiftReduceParser.REDUCE:
             production = next(right_parse)
             head, body = production
@@ -30,7 +30,6 @@ def evaluate_reverse_parse(right_parse, operations, tokens):
                 stack.append(rule(None, None))
         else:
             raise Exception("Invalid action!!!")
-
     assert len(stack) == 1
     assert isinstance(next(tokens).token_type, EOF)
     return stack[0]
