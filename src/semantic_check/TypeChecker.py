@@ -260,8 +260,8 @@ class TypeCheckerVisitor:
         except:
             self.errors.append(SemanticError(f"El tipo {node.type} no esta definido."))
 
-    @visitor.when(MemberAccesNode)
-    def visit(self, node: MemberAccesNode, scope: Scope):
+    @visitor.when(MemberAccessNode)
+    def visit(self, node: MemberAccessNode, scope: Scope):
         #! Hay que hacer la diferenciacion de casos entre una variable y otro tipo de factor
         base_object_type: Type = self.visit(node.base_object, scope)
         try:
