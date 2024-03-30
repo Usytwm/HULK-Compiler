@@ -1,4 +1,4 @@
-from tools.ast_nodes import *
+from src.tools.ast_nodes import *
 from src.cmp.semantic import *
 import src.cmp.visitor as visitor
 

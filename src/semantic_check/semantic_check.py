@@ -1,7 +1,7 @@
-from cmp.semantic import Context, Method, Scope, Type
-from semantic_check.TypeBuilder import TypeBuilderVisitor
-from semantic_check.TypeChecker import TypeCheckerVisitor
-from semantic_check.TypeCollector import TypeCollectorVisitor
+from src.cmp.semantic import Context, Method, Scope, Type
+from src.semantic_check.TypeBuilder import TypeBuilderVisitor
+from src.semantic_check.TypeChecker import TypeCheckerVisitor
+from src.semantic_check.TypeCollector import TypeCollectorVisitor
 
 
 class SemanticCheck:
@@ -41,5 +41,7 @@ class SemanticCheck:
         build_collector = TypeBuilderVisitor(self.context, self.scope, self.errors)
         build_collector.visit(ast)
 
-        semantic_checking = TypeCheckerVisitor(self.context, self.scope, self.errors)
+        semantic_checking = TypeCheckerVisitor(
+            self.context, self.scope, self.errors, self.scope.functions
+        )
         semantic_checking.visit(ast)

@@ -1,6 +1,6 @@
-from cmp.semantic import Context, Method, Scope, SemanticError
-from src.cmp.visitor import visitor
-from tools.ast_nodes import *
+from src.cmp.semantic import Context, Method, Scope, SemanticError
+import src.cmp.visitor as visitor
+from src.tools.ast_nodes import *
 
 
 class TypeCollectorVisitor:
