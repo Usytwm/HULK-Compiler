@@ -9,7 +9,6 @@ class TypeBuilderVisitor:
         self.scope = scope
         self.errors = errors
         self.currentType: Type
-        self.args = dict
 
     @visitor.on("node")
     def visit(self, node, tabs):
@@ -22,21 +21,30 @@ class TypeBuilderVisitor:
 
     @visitor.when(TypeDefinitionNode)
     def visit(self, node: TypeDefinitionNode):
-        self.currentType = self.context.get_type(node.id)
-        arg_types = [self.context.get_type(t[0].value) for t in node.parameters]
+        self.currentType: Type = self.context.get_type(node.id)
+        try:
+            inheritance = self.context.get_type(node.inheritance)
+        except:
+            self.errors.append(f"El tipo {node.inheritance} no esta definido")
+            inheritance = self.context.get_type("object")
 
-        arg_names = [self.context.get_type(t[0].key) for t in node.parameters]
-        #!aki creoq ue no se le sta asano los nombres, sino que sta crenado tipos y eso es solo la lista de los nombres
-        for i in range(arg_names):
-            self.currentType.define_attribute(arg_names[i], arg_types[i])
-            self.args.update(self.currentType.name, self.currentType)
+        self.currentType.inheritance = inheritance
+
+        for param in node.parameters:
+            name = param.items[0].key
+            value = param.items[0].value
+
+            type = self.context.get_type(value)
+            try:
+                self.currentType.define_argument(name, type)
+            except:
+                self.errors.append(f"El tipo {value} no esta definido")
 
         for attrDef in node.attribute:
             self.visit(attrDef)
         for methodDef in node.methods:
             self.visit(methodDef)
 
-        # actualizacion por si veo un metodo
         self.currentType = None
 
     @visitor.when(KernAssigmentNode)
@@ -52,17 +60,24 @@ class TypeBuilderVisitor:
 
     @visitor.when(FunctionDefinitionNode)
     def visit(self, node: FunctionDefinitionNode):
-        return_type = self.context.get_type(node.type_annotation)
-        arg_types = [
-            (
-                self.context.get_type(t[0].value)
-                if t[0].value in self.context
-                else Type("object")
-            )
-            for t in node.parameters
+        try:
+            return_type = self.context.get_type(node.type_annotation)
+        except:
+            self.errors.append(f"El tipo de retorno {node.id} no esta definido")
+            return_type = self.context.get_type("object")
+        arg_types = []
+        for param in node.parameters:
+            try:
+                arg_types.append(self.context.get_type(param.items[0].value))
+            except:
+                self.errors.append(
+                    f"El tipo de retorno {param.items[0].value} no esta definido"
+                )
+                arg_types.append(self.context.get_type("object"))
+
+        arg_names = [
+            t.items[0].key for t in node.parameters if t[0].key in self.context
         ]
-        arg_names = [t[0].key for t in node.parameters if t[0].key in self.context]
-        #!aki que garantiza que currentype este dentro o fuera de una clase
         if self.currentType:
             try:
                 self.currentType.define_method(

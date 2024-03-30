@@ -4,7 +4,7 @@ from tools.ast_nodes import *
 
 
 class TypeCollectorVisitor:
-    def __init__(self, contetx: Context, scope: Scope, errors) -> None:
+    def __init__(self, contetx: Context, scope: Scope, errors: List[str]) -> None:
         self.context = contetx
         self.scope = scope
         self.errors = errors
@@ -20,20 +20,20 @@ class TypeCollectorVisitor:
             self.visit(statment, self.context, self.scope)
 
     @visitor.when(TypeDefinitionNode)
-    def visit(self, node: TypeDefinitionNode, context: Context, scope: Scope):
+    def visit(self, node: TypeDefinitionNode):
         try:
-            context.create_type(node.id)
+            self.context.create_type(node.id)
         except:
             self.errors.append(
                 SemanticError(f"El nombre de tipo {node.id} ya ha sido tomado")
             )
 
     @visitor.when(FunctionDefinitionNode)
-    def visit(self, node: FunctionDefinitionNode, context: Context, scope: Scope):
+    def visit(self, node: FunctionDefinitionNode):
         try:
-            x = scope.functions[node.id]
+            self.scope.functions[node.id]
             self.errors.append(
                 SemanticError(f"El nombre de tipo {node.id} ya ha sido tomado")
             )
         except:
-            scope.functions[node.id] = []
+            self.scope.functions[node.id] = []

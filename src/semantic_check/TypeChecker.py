@@ -1,24 +1,17 @@
 from src.cmp.visitor import visitor
 from tools.ast_nodes import *
-from cmp.semantic import Context, Scope, SemanticError, Type
+from cmp.semantic import Context, Method, Scope, SemanticError, Type
 
 
 class TypeCheckerVisitor:
-    def __init__(self, context: Context, scope: Scope, errors) -> None:
+    def __init__(
+        self, context: Context, scope: Scope, errors, default_functions
+    ) -> None:
         self.context: Context = context
-        self.errors: List[str] = errors
-
-        # ------------------Inicializando funciones por defecto-----------------------------------------------#
         self.scope = scope
-        self.default_functions = ["print", "sen", "cos", "sqrt", "exp"]
-        for func in self.default_functions:
-            self.scope.functions[func] = [1]
-
-        self.default_functions.extend(["rand", "log"])
-        self.scope.functions["rand"] = [0]
-        self.scope.functions["log"] = [2]
-
-        # ----------------------------------------------------------------------------------------------------#
+        self.errors: List[str] = errors
+        self.default_functions = default_functions
+        self.current_type: Type = None
 
     @visitor.on("node")
     def visit(self, node, scope):
@@ -31,8 +24,8 @@ class TypeCheckerVisitor:
 
     @visitor.when(PrintStatmentNode)
     def visit(self, node: PrintStatmentNode, scope: Scope):
-        print("visitor en PrintNode")
         self.visit(node.expression, scope)
+        return self.context.get_type("void")
 
     @visitor.when(DestroyNode)
     def visit(self, node: DestroyNode, scope: Scope):
@@ -43,8 +36,8 @@ class TypeCheckerVisitor:
 
         return self.visit(node.expression, scope)
 
-    @visitor.when(LetNode)
-    def visit(self, node: LetNode, scope: Scope):
+    @visitor.when(KernAssigmentNode)
+    def visit(self, node: KernAssigmentNode, scope: Scope):
         if scope.is_local(node.id) or scope.is_defined(node.id):
             self.errors.append(
                 SemanticError(f"La variable {node.id} ya esta definida.")
@@ -74,26 +67,24 @@ class TypeCheckerVisitor:
                     f"Esta redefiniendo una funcion {node.id} que esta definida por defecto en el lenguaje y no se puede sobreescribir"
                 )
             )
-
             # * En los nodos que no son expresiones aritmeticas o booleanas o concatenacion dberia ponerle que tiene typo object?
             return self.context.get_type("object")
+        if self.current_type:
+            method = self.current_type.get_method(node.id)
+        else:
+            method = filter(
+                lambda x: len(x.param_names) == len(node.parameters),
+                self.scope.functions[node.id],
+            )[0]
 
-        try:
-            args_len = scope.functions[node.id]
-            current_args_len = len(node.parameters)
-            if current_args_len in args_len:
-                self.errors.append(f"La función {node.id} ya sta definida")
-            else:
-                scope.functions[node.id].append(current_args_len)
-
-        except:
-            scope.functions[node.id].append(len(node.parameters))
         child_scope = scope.create_child()
-        for vname, vtype in node.parameters:
-            child_scope.define_variable(vname, self.visit(vtype, child_scope))
+        for i in len(method.param_names):
+            child_scope.define_variable(method.param_names[i], method.param_types[i])
 
         for statment in node.body:
             self.visit(statment, child_scope)
+
+        return self.context.get_type("object")
 
     # ----------------------------------------Checkeo de tipos--------------------------------------------------------------------------------------------------------------#
 
@@ -156,9 +147,7 @@ class TypeCheckerVisitor:
         inners_scope: Scope = scope.create_child(scope)
         for id, expr in node.init_assigments:
             if scope.is_defined(node.id):
-                self.errors.append(
-                    SemanticError(f"La variable {id} ya esta definida en este scope.")
-                )
+                self.errors.append(f"La variable {id} ya esta definida en este scope.")
             else:
                 inners_scope.define_variable(
                     id, self.visit(expr, inners_scope)
@@ -173,6 +162,8 @@ class TypeCheckerVisitor:
 
     @visitor.when(TypeDefinitionNode)
     def visit(self, node: TypeDefinitionNode, scope: Scope):
+        self.current_type = self.context.get_type(node.id)
+
         inner_scope: Scope = scope.create_child(scope)
 
         # TODO Ver que se hace con los argumentos porque fuera del 'constructor' ya no tienen sentido
@@ -187,52 +178,12 @@ class TypeCheckerVisitor:
         for method in node.methods:
             self.visit(method, inner_scope)
 
-        return self.context.get_type("object")
-
-    @visitor.when(InstanceCreationNode)
-    def visit(self, node: InstanceCreationNode, scope: Scope):
-        if scope.is_local(node.id) or scope.is_defined(node.id):
-            self.errors.append(
-                SemanticError(f"El nombre de varible {node.id} ya ha sido tomado.")
-            )
-        else:
-            try:
-                # for arg in node.arguments:
-                #     self.visit(arg, scope)
-                class_type: Type = self.context.types[node.type]
-                if len[class_type.attributes] != len(node.arguments):
-                    self.errors.append(
-                        SemanticError(
-                            f"La cantidad de argumentos no coincide con la cantidad de atributos de la clase {node.type}."
-                        )
-                    )
-                else:
-                    correct = True
-                    for i in range(len(node.arguments)):
-                        #! Hay que crear una jerarquia de tipos por causa de la herencia de clases
-                        if class_type.attributes[i].type != self.visit(
-                            node.arguments[i], scope
-                        ):
-                            self.errors.append(
-                                SemanticError(
-                                    f"El tipo del argumento {i} no coincide con el tipo del atributo {i} de la clase {node.type}."
-                                )
-                            )
-                        else:
-                            correct = False
-
-                    if correct:
-                        scope.define_variable(node.id, self.context.types[node.type])
-            except:
-                self.errors.append(
-                    SemanticError(f"El tipo {node.type} no esta definido.")
-                )
+        self.current_type = None
+        return self.context.get_type("object")  #!void
 
     @visitor.when(KernInstanceCreationNode)
     def visit(self, node: KernInstanceCreationNode, scope: Scope):
         try:
-            # for arg in node.arguments:
-            #     self.visit(arg, scope)
             class_type: Type = self.context.types[node.type]
             if len[class_type.attributes] != len(node.arguments):
                 self.errors.append(
