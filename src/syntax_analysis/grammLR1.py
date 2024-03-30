@@ -91,8 +91,8 @@ if_structure, while_structure, for_structure, create_statement, non_create_state
     NotEqual,
     Is,
     In,
-    _True,
-    _False,
+    True_,
+    False_,
 ) = G.Terminals("and or not < > == <= >= != is in True False")
 Comma, Dot, If, Else, While, For, Let, Function, Colon = G.Terminals(
     ", . if else while for let function :"
@@ -288,8 +288,8 @@ factorPow %= factor + Pow + factorPow, lambda h, s: PowExpressionNode(s[1], s[3]
 factor %= oPar + expr_statement + cPar, lambda h, s: s[2]
 factor %= number, lambda h, s: NumberNode(s[1])
 factor %= string, lambda h, s: StringNode(s[1])
-factor %= _False, lambda h, s: BooleanNode(s[1])
-factor %= _True, lambda h, s: BooleanNode(s[1])
+factor %= False_, lambda h, s: BooleanNode(s[1])
+factor %= True_, lambda h, s: BooleanNode(s[1])
 factor %= identifier + oPar + arguments + cPar, lambda h, s: FunctionCallNode(
     s[1], s[3]
 )
