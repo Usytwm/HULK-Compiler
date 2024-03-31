@@ -11,18 +11,19 @@ with open(path, "r", encoding="utf-8") as archivo:
 
 # define grammar
 grammar = gramm_Hulk_LR1()
-text = """let a = 6, b = a * 7 in print(b);
-let a = 6 in
-    let b = a * 7 in
-        print(b);
-"""
+text = """
+let a = 5, b = 10, c = 20 in {
+    print(a+b);
+    print(b*c);
+    print(c/a);
+};"""
 
 lexer = Lexer(
     build_regex(),
     EOF,
 )
 
-tokens = lexer(text)
+tokens = lexer(content)
 tokentypes = [token.token_type for token in tokens]
 parser = LR1Parser(grammar)
 parser, operations = parser(tokentypes)
