@@ -103,7 +103,7 @@ class TypeBuilderVisitor:
         self.context: Context = context
         self.scope: Scope = scope
         self.errors: List[str] = errors
-        self.currentType: Type
+        self.currentType: Type = None
 
     @visitor.on("node")
     def visit(self, node, tabs):
@@ -111,8 +111,6 @@ class TypeBuilderVisitor:
 
     @visitor.when(ProgramNode)
     def visit(self, node: ProgramNode):
-        # print('TypeBuilder')
-        # print(f'Context in Builder: {[item for item in self.context.types.keys()]}')
         for classDef in node.statments:
             self.visit(classDef)
 

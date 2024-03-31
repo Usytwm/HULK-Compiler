@@ -162,7 +162,7 @@ ast6 = ProgramNode(
             [],
             PlusExpressionNode(NumberNode(4), NumberNode(5)),
         ),
-        SqrtMathNode(StringNode("arbol")),
+        SqrtMathNode(NumberNode(4)),
     ]
 )
 
@@ -170,8 +170,4 @@ print_aritmetic_tests = [ast0, ast1, ast2, ast3, ast4, ast5, ast6]
 for index_test in range(len(print_aritmetic_tests)):
     print(f"Test - {index_test}")
     checker = TreeWalkInterpreter()
-    if index_test != 6:
-        continue
     checker.visit(print_aritmetic_tests[index_test])
-    # print(len(errors))
-    # print(errors)
