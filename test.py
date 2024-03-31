@@ -5,33 +5,31 @@ from src.lexical_analysis.lexer import Lexer
 from src.lexical_analysis.regex_patterns import build_regex
 from src.syntax_analysis.grammLR1 import EOF, gramm_Hulk_LR1
 
-# path = "test/Data/prueba.txt"
-# with open(path, "r", encoding="utf-8") as archivo:
-#     content = archivo.read()
-#     lexer = Lexer(
-#         build_regex(),
-#         "eof",
-#     )
+path = "test/Data/prueba.txt"
+with open(path, "r", encoding="utf-8") as archivo:
+    content = archivo.read()
 
-# # define grammar
-# grammar = gramm_Hulk_LR1()
-# text = """type Point {
-#     x = 0;
-#     y = 0;
-# }"""
+# define grammar
+grammar = gramm_Hulk_LR1()
+text = """
+let a = 5, b = 10, c = 20 in {
+    print(a+b);
+    print(b*c);
+    print(c/a);
+};"""
 
-# lexer = Lexer(
-#     build_regex(),
-#     EOF,
-# )
+lexer = Lexer(
+    build_regex(),
+    EOF,
+)
 
-# tokens = lexer(text)
-# tokentypes = [token.token_type for token in tokens]
-# parser = LR1Parser(grammar, True)
-# parser, operations = parser(tokentypes)
-# ast = evaluate_reverse_parse(parser, operations, tokens)
-# checker = SemanticCheck()
-# checker.semantick_check(ast)
+tokens = lexer(content)
+tokentypes = [token.token_type for token in tokens]
+parser = LR1Parser(grammar)
+parser, operations = parser(tokentypes)
+ast = evaluate_reverse_parse(parser, operations, tokens)
+checker = SemanticCheck()
+checker.semantick_check(ast)
 
 # print(ast)
 from semantic_check.interpreter import TreeWalkInterpreter
