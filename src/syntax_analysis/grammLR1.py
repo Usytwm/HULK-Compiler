@@ -37,10 +37,15 @@ Program = G.NonTerminal("Program", True)
 ) = G.NonTerminals(
     "print_statement assignment function_definition control_structure contElif contElse"
 )
-if_structure, while_structure, for_structure, create_statement, non_create_statement = (
-    G.NonTerminals(
-        "if_structure while_structure for_structure create_statement non_create_statement"
-    )
+(
+    if_structure,
+    while_structure,
+    for_structure,
+    create_statement,
+    non_create_statement,
+    expr_statementWithoutSemi,
+) = G.NonTerminals(
+    "if_structure while_structure for_structure create_statement non_create_statement expr_statementWithoutSemi"
 )
 (
     let_in,
@@ -91,8 +96,8 @@ if_structure, while_structure, for_structure, create_statement, non_create_state
     NotEqual,
     Is,
     In,
-    True_,
-    False_,
+    _True,
+    _False,
 ) = G.Terminals("and or not < > == <= >= != is in True False")
 Comma, Dot, If, Else, While, For, Let, Function, Colon, PowStar = G.Terminals(
     ", . if else while for let function : **"
@@ -117,13 +122,21 @@ statement %= create_statement, lambda h, s: s[1]
 
 non_create_statement %= control_structure, lambda h, s: s[1]
 non_create_statement %= expr_statement + Semi, lambda h, s: s[1]
+# non_create_statement %= expr_statementWithoutSemi, lambda h, s: s[1]
 
 create_statement %= type_definition, lambda h, s: s[1]
 create_statement %= function_definition, lambda h, s: s[1]
 create_statement %= destructive_assignment + Semi, lambda h, s: s[1]
 
 expr_statement %= print_statement, lambda h, s: s[1]
+expr_statement %= assignment + In + expr_statement, lambda h, s: LetInExpressionNode(
+    s[1], s[3]
+)
 expr_statement %= expression, lambda h, s: s[1]
+expr_statement %= oBrace + statement_list + cBrace, lambda h, s: s[2]
+# expr_statement %= expr_statementWithoutSemi, lambda h, s: s[1]
+# expr_statementWithoutSemi %= assignment + In + oBrace + statement_list + cBrace, lambda h, s: LetInNode(s[1], s[3])
+
 print_statement %= Print + oPar + expression + cPar, lambda h, s: PrintStatmentNode(
     s[3]
 )
@@ -188,6 +201,7 @@ multi_assignment %= kern_assignment, lambda h, s: [s[1]]
 kern_assignment %= identifier + Equal + expr_statement, lambda h, s: KernAssigmentNode(
     s[1], s[3]
 )
+# kern_assignment %= identifier + Equal + expr_statementWithoutSemi, lambda h, s: KernAssigmentNode(s[1],s[3])
 
 destructive_assignment %= (
     identifier + Destroy + expression + Comma + destructive_assignment,
@@ -241,6 +255,7 @@ expression %= (
     lambda h, s: StringConcatWithSpaceNode(s[1], s[4]),
 )
 
+
 ExprOr %= ExprAnd, lambda h, s: s[1]
 ExprOr %= ExprOr + Or + ExprAnd, lambda h, s: BoolOrNode(s[1], s[3])
 
@@ -282,18 +297,14 @@ factorPow %= factor + PowStar + factorPow, lambda h, s: PowExpressionNode(s[1], 
 factor %= oPar + expr_statement + cPar, lambda h, s: s[2]
 factor %= number, lambda h, s: NumberNode(s[1])
 factor %= string, lambda h, s: StringNode(s[1])
-factor %= False_, lambda h, s: BooleanNode(s[1])
-factor %= True_, lambda h, s: BooleanNode(s[1])
+factor %= _False, lambda h, s: BooleanNode(s[1])
+factor %= _True, lambda h, s: BooleanNode(s[1])
 factor %= identifier + oPar + arguments + cPar, lambda h, s: FunctionCallNode(
     s[1], s[3]
 )
 factor %= identifier, lambda h, s: IdentifierNode(s[1])
-factor %= assignment + In + expr_statement + Semi, lambda h, s: LetInExpressionNode(
-    s[1], s[3]
-)
-factor %= assignment + In + oBrace + statement_list + cBrace, lambda h, s: LetInNode(
-    s[1], s[3]
-)
+# factor %= assignment + In + expr_statement, lambda h, s: LetInExpressionNode(s[1], s[3])
+# factor %= assignment + In + oBrace + statement_list + cBrace, lambda h, s: LetInNode(s[1], s[3])
 factor %= math_call, lambda h, s: s[1]
 factor %= member_access, lambda h, s: s[1]
 

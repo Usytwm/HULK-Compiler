@@ -34,7 +34,7 @@ from src.syntax_analysis.grammLR1 import EOF, gramm_Hulk_LR1
 # checker.semantick_check(ast)
 
 # print(ast)
-from src.semantic_check.tree_walk_interpreter import TreeWalkInterpreter
+from semantic_check.interpreter import TreeWalkInterpreter
 from src.cmp.semantic import Context, Scope
 from src.semantic_check.TypeBuilder import TypeBuilderVisitor
 from src.semantic_check.TypeChecker import TypeCheckerVisitor
