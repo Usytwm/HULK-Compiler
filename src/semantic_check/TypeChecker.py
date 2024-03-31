@@ -19,11 +19,14 @@ class TypeCheckerVisitor:
 
     @visitor.when(ProgramNode)
     def visit(self, node: ProgramNode):
+        # print('TypeChecker')
+        # print(f'Context in Checker: {[item for item in self.context.types.keys()]}')
         for statment in node.statments:
             self.visit(statment, self.scope)
 
     @visitor.when(PrintStatmentNode)
     def visit(self, node: PrintStatmentNode, scope):
+        # print('visitor en PrintNode')
         self.visit(node.expression, scope)
 
         return self.context.get_type("void")
@@ -74,6 +77,13 @@ class TypeCheckerVisitor:
 
     @visitor.when(FunctionDefinitionNode)
     def visit(self, node: FunctionDefinitionNode, scope: Scope):
+        # if node.id in self.default_functions:
+        #     self.errors.append(SemanticError(f'Esta redefiniendo una funcion {node.id} que esta definida por defecto en el lenguaje y no se puede sobreescribir'))
+
+        #     #* En los nodos que no son expresiones aritmeticas o booleanas o concatenacion o llamados a funciones deberia ponerle que tiene typo object?
+        #     return self.context.get_type('object')
+
+        # node_id: IdentifierNode = node.id
         if self.current_type:
             method = self.current_type.get_method(node.id.id)
         else:
@@ -170,6 +180,8 @@ class TypeCheckerVisitor:
 
     @visitor.when(TypeDefinitionNode)
     def visit(self, node: TypeDefinitionNode, scope: Scope):
+        # node_id: IdentifierNode = node.id
+
         self.current_type = self.context.get_type(node.id.id)
 
         inner_scope: Scope = scope.create_child()
@@ -190,6 +202,30 @@ class TypeCheckerVisitor:
         self.current_type = None
 
         return self.context.get_type("object")
+
+    # @visitor.when(InstanceCreationNode)
+    # def visit(self, node: InstanceCreationNode, scope: Scope):
+    #     if scope.is_local(node.id) or scope.is_defined(node.id):
+    #         self.errors.append(SemanticError(f'El nombre de varible {node.id} ya ha sido tomado.'))
+    #     else:
+    #         try:
+    #             # for arg in node.arguments:
+    #             #     self.visit(arg, scope)
+    #             class_type: Type = self.context.types[node.type]
+    #             if len[class_type.attributes] != len(node.arguments):
+    #                 self.errors.append(SemanticError(f'La cantidad de argumentos no coincide con la cantidad de atributos de la clase {node.type}.'))
+    #             else:
+    #                 correct = True
+    #                 for i in range(len(node.arguments)):
+    #                     # Hay que crear una jerarquia de tipos por causa de la herencia de clases
+    #                     if class_type.attributes[i].type != self.visit(node.arguments[i], scope):
+    #                         self.errors.append(SemanticError(f'El tipo del argumento {i} no coincide con el tipo del atributo {i} de la clase {node.type}.'))
+    #                     else: correct = False
+
+    #                 if correct:
+    #                     scope.define_variable(node.id, self.context.types[node.type])
+    #         except:
+    #             self.errors.append(SemanticError(f'El tipo {node.type} no esta definido.'))
 
     @visitor.when(KernInstanceCreationNode)
     def visit(self, node: KernInstanceCreationNode, scope: Scope):
@@ -288,8 +324,9 @@ class TypeCheckerVisitor:
     def visit(self, node: AritmeticExpression, scope: Scope):
         type_1: Type = self.visit(node.expression_1, scope)
         type_2: Type = self.visit(node.expression_2, scope)
-
+        print("Operacion aritmetica")
         if not type_1.conforms_to("number") or not type_2.conforms_to("number"):
+            print("Alguno no es un nnumero")
             self.errors.append(
                 SemanticError(
                     f"Solo se pueden emplear aritmeticos entre expresiones aritmeticas."
