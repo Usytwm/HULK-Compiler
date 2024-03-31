@@ -2,6 +2,8 @@ import itertools as itt
 from collections import OrderedDict
 from typing import Dict, List
 
+from src.tools.ast_nodes import FunctionDefinitionNode
+
 
 class SemanticError(Exception):
     @property
@@ -148,9 +150,9 @@ class Type:
     def conforms_to(self, other):
         return (
             other.bypass()
-            or self == other
-            or self.parent is not None
-            and self.parent.conforms_to(other)
+            or self.name == other
+            or self.inheritance is not None
+            and self.inheritance.conforms_to(other)
         )
 
     def bypass(self):
@@ -261,6 +263,7 @@ class Scope:
         self.children = []
         self.functions: Dict[str, List[Method]] = {}
         self.index = 0 if parent is None else len(parent)
+        self.node: Dict[str, List[FunctionDefinitionNode]] = {}
 
     def __len__(self):
         return len(self.locals)
@@ -282,7 +285,7 @@ class Scope:
         except StopIteration:
             return (
                 self.parent.find_variable(vname, self.index)
-                if self.parent is None
+                if not self.parent is None
                 else None
             )
 

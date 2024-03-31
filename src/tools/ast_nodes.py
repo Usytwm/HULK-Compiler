@@ -40,8 +40,6 @@ class BinaryNode(Node):
 
 
 # -------------------------------------------------------------------------------------------------------------------------------------------------#
-
-
 class ProgramNode(Node):
     def __init__(self, statments) -> None:
         super().__init__()
@@ -54,6 +52,7 @@ class PrintStatmentNode(Node):
         self.expression = expression
 
 
+# TODO creo que se deberia poner el type_annotation en el kern_assigment
 class KernAssigmentNode(Node):
     def __init__(self, id, expression) -> None:
         super().__init__()
@@ -66,6 +65,8 @@ class DestroyNode(KernAssigmentNode):
         super().__init__(id, expression)
 
 
+# ? Podriamos instanciar la clase Type
+# * Eso se hace luego cuando se viita el nodo en el visitor
 class TypeNode(Node):
     def __init__(self, type) -> None:
         super().__init__()
@@ -129,8 +130,6 @@ class ForStructureNode(Node):
 
 
 # -----------------------------------Class----------------------------------------------------------------------------------------------#
-
-
 class TypeDefinitionNode(Node):
     def __init__(
         self,
@@ -144,7 +143,7 @@ class TypeDefinitionNode(Node):
         self.id = id
         self.parameters = parameters
         self.inheritance = inheritance
-        self.attribute: List[KernAssigmentNode] = attributes
+        self.attributes: List[KernAssigmentNode] = attributes
         self.methods = methods
 
 
@@ -154,6 +153,8 @@ class InheritanceNode(Node):
         self.type = type
 
 
+# ? Verificar que son los parametros type y args
+# * En new type (args = [param_1, param_2, ...])
 class KernInstanceCreationNode(BinaryNode):
     def __init__(self, type, args):
         super().__init__(type, args)
@@ -161,6 +162,8 @@ class KernInstanceCreationNode(BinaryNode):
         self.args = args
 
 
+# ? Ver bien que en que consiste el member acces
+# * x.method_name(parametro_1, parametro_2, ...)
 class MemberAccessNode(Node):
     def __init__(self, base_object, object_property_to_acces, args) -> None:
         super().__init__()
@@ -170,8 +173,6 @@ class MemberAccessNode(Node):
 
 
 # -------------------------------------------Abstrct-Expressions------------------------------------------------------------------------------------------#
-
-
 class BooleanExpression(BinaryNode):
     def __init__(self, expression_1, expression_2) -> None:
         super().__init__(expression_1, expression_2)
@@ -185,8 +186,6 @@ class AritmeticExpression(Node):
 
 
 # -------------------------------Aritmetic-Expressions-------------------------------------------------------------------------------------------------#
-
-
 class PlusExpressionNode(AritmeticExpression):
     def __init__(self, expression_1, expresion_2) -> None:
         super().__init__(expression_1, expresion_2)
@@ -230,8 +229,6 @@ class PINode(NumberNode):
 
 
 # ------------------------------------------------------------Math-Operations-----------------------------------------------------------------------------------#
-
-
 class MathOperationNode(UnaryNode):
     def __init__(self, expression) -> None:
         super().__init__(expression)
@@ -312,8 +309,9 @@ class StringNode(Node):
 
 
 class IdentifierNode(Node):
-    def __init__(self) -> None:
+    def __init__(self, id) -> None:
         super().__init__()
+        self.id = id
 
 
 class StringConcatNode(BinaryNode):
