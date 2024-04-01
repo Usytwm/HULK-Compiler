@@ -1,68 +1,39 @@
-from src.syntax_analysis.grammLR1 import gramm_Hulk_LR1
+from src.semantic_check.semantic_check import SemanticCheck
+from src.cmp.evaluation import evaluate_reverse_parse
 from src.syntax_analysis.LR1Parser import LR1Parser
 from src.lexical_analysis.lexer import Lexer
-from pathlib import Path
-from cmp.cil import PrintVisitor
-import typer
+from src.lexical_analysis.regex_patterns import build_regex
+from src.syntax_analysis.grammLR1 import EOF, gramm_Hulk_LR1
+from src.semantic_check.interpreter import TreeWalkInterpreter
+import unittest
 
-
-def report_and_exit(errors):
-    if len(errors) == 0:
-        raise typer.Exit(code=0)
-
-    # typer.echo(errors[0])
-    for error in errors:
-        typer.echo(error)
-    raise typer.Exit(code=1)
-
-
-def pipeline(input_file: Path, output_file: Path = None):
-
-    errors = []
-
-    text = input_file.read_text()
-
+class TestHulk(unittest.TestCase):
+    path = "test/Data/archivo.hulk"
+    with open(path, "r", encoding="utf-8") as archivo:
+        content = archivo.read()
+    print(content)
     # define grammar
-    grammar= gramm_Hulk_LR1()
+    grammar = gramm_Hulk_LR1()
 
-    tokens = Lexer(text)
-
+    lexer = Lexer(
+        build_regex(),
+        EOF,
+    )
     parser = LR1Parser(grammar)
+    checker = SemanticCheck()
+    interpreter = TreeWalkInterpreter()
 
+    tokens = lexer(content)
 
-    # Extraer las propiedades "tokentype" de cada token
-    tokentypes = [token.token_type for token in tokens if token.token_type != 'space']
+    tokentypes = [token.token_type for token in tokens]
 
-    print(tokentypes)
+    parser, operations = parser(tokentypes)
 
-    derivation = parser(tokentypes)
-    print(derivation)
+    ast = evaluate_reverse_parse(parser, operations, tokens)
 
+    #checker.semantick_check(ast)
 
-    """""
-    # print("-------------------------------Initial AST-------------------------------")
-    # formatter = FormatVisitorST()
-    # tree = formatter.visit(ast)
-    # print(tree)
-
-    visitors = [TypeCollector(errors), TypeBuilder(errors)]
-    for visitor in visitors:
-        ast = visitor.visit(ast)
-
-    type_checker = TypeChecker(errors)
-    scope, typed_ast = type_checker.visit(ast)
-
-    # formatter = FormatVisitorTypedAst()
-    # print("-------------------------------Typed AST-------------------------------")
-    # tree = formatter.visit(typed_ast)
-    # print(tree)
-
-    
-    """""
-
+    interpreter.visit(ast)
+   
 if __name__ == "__main__":
-    #input_file = Path("...")
-    #output_file =  Path("...")
-
-    #pipeline()
-    typer.run(pipeline)
+    unittest.main()

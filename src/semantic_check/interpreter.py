@@ -31,7 +31,7 @@ class TreeWalkInterpreter:
 
     @visitor.when(NumberNode)
     def visit(self, node: NumberNode, scope: Scope = None, Context: Context = None):
-        return node.value
+        return float(node.value)
 
     @visitor.when(StringNode)
     def visit(self, node: StringNode, scope: Scope = None, Context: Context = None):

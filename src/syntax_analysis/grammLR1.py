@@ -315,7 +315,7 @@ member_access %= (
     factor + Dot + identifier + oPar + arguments + cPar,
     lambda h, s: MemberAccessNode(s[1], IdentifierNode(s[3]), s[5]),
 )
-# member_access %= factor + Dot + identifier , lambda h, s: MemberAccesNode(s[1], s[3], [])  #Todo member access Los parametros son privados de la clase #! NAOMI ARREGLA ESTO EN EL CHECKEO SEMANTICO ❤️
+# member_access %= factor + Dot + identifier , lambda h, s: MemberAccesNode(s[1], s[3], []) 
 kern_instance_creation %= (
     New + identifier + oPar + arguments + cPar,
     lambda h, s: KernInstanceCreationNode(IdentifierNode(s[2]), s[4]),

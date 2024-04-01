@@ -46,18 +46,8 @@ pip freeze > requirements.txt
 
 ## Ejecutar Tester
 
-Para ejecutar los tests, simplemente basta con ejecutar, para cada archivo, lo siguiente:
-
-Para lexer_test.py:
+Para ejecutar el proyecto:
 
 ```bash
-python -m unittest -v test.lexer_tests
+python -m unittest -v main.TestHulk
 ```
-
-Esto ejecutará todos los tests del lexer. Si, por el contrario, quieres ejecutar un método específico a la vez, puedes hacerlo de la siguiente manera:
-
-```bash
-python -m unittest -v test.lexer_tests.TestLexer.<metodo>
-```
-
-Donde <metodo> debe ser reemplazado por el nombre del método de test que deseas ejecutar.
