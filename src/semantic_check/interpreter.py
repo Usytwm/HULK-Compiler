@@ -121,55 +121,55 @@ class TreeWalkInterpreter:
 
     @visitor.when(BoolAndNode)
     def visit(self, node: BoolAndNode, scope: Scope = None, Context: Context = None):
-        left_value = self.visit(node.expression_1)
-        right_value = self.visit(node.expression_2)
+        left_value = self.visit(node.left)
+        right_value = self.visit(node.right)
         return left_value and right_value
 
     @visitor.when(BoolOrNode)
     def visit(self, node: BoolOrNode, scope: Scope = None, Context: Context = None):
-        left_value = self.visit(node.expression_1)
-        right_value = self.visit(node.expression_2)
+        left_value = self.visit(node.left)
+        right_value = self.visit(node.right)
         return left_value or right_value
 
     @visitor.when(BoolNotNode)
     def visit(self, node: BoolNotNode):
-        value = self.visit(node.expression)
+        value = self.visit(node.node)
         return not value
 
     @visitor.when(BoolCompLessNode)
     def visit(self, node: BoolCompLessNode):
-        left_value = self.visit(node.expression_1)
-        right_value = self.visit(node.expression_2)
+        left_value = self.visit(node.left)
+        right_value = self.visit(node.right)
         return left_value < right_value
 
     @visitor.when(BoolCompGreaterNode)
     def visit(self, node: BoolCompGreaterNode):
-        left_value = self.visit(node.expression_1)
-        right_value = self.visit(node.expression_2)
+        left_value = self.visit(node.left)
+        right_value = self.visit(node.right)
         return left_value > right_value
 
     @visitor.when(BoolCompLessEqualNode)
     def visit(self, node: BoolCompLessEqualNode):
-        left_value = self.visit(node.expression_1)
-        right_value = self.visit(node.expression_2)
+        left_value = self.visit(node.left)
+        right_value = self.visit(node.right)
         return left_value <= right_value
 
     @visitor.when(BoolCompGreaterEqualNode)
     def visit(self, node: BoolCompGreaterEqualNode):
-        left_value = self.visit(node.expression_1)
-        right_value = self.visit(node.expression_2)
+        left_value = self.visit(node.left)
+        right_value = self.visit(node.right)
         return left_value >= right_value
 
     @visitor.when(BoolCompEqualNode)
     def visit(self, node: BoolCompEqualNode):
-        left_value = self.visit(node.expression_1)
-        right_value = self.visit(node.expression_2)
+        left_value = self.visit(node.left)
+        right_value = self.visit(node.right)
         return left_value == right_value
 
     @visitor.when(BoolCompNotEqualNode)
     def visit(self, node: BoolCompNotEqualNode):
-        left_value = self.visit(node.expression_1)
-        right_value = self.visit(node.expression_2)
+        left_value = self.visit(node.left)
+        right_value = self.visit(node.right)
         return left_value != right_value
 
     @visitor.when(PlusExpressionNode)
@@ -245,12 +245,12 @@ class TreeWalkInterpreter:
 
     @visitor.when(StringConcatNode)
     def visit(self, node: StringConcatNode):
-        left_value = self.visit(node.expression_1)
-        right_value = self.visit(node.expression_2)
+        left_value = self.visit(node.left)
+        right_value = self.visit(node.right)
         return str(left_value) + str(right_value)
 
     @visitor.when(StringConcatWithSpaceNode)
     def visit(self, node: StringConcatWithSpaceNode):
-        left_value = self.visit(node.expression_1)
-        right_value = self.visit(node.expression_2)
+        left_value = self.visit(node.left)
+        right_value = self.visit(node.right)
         return str(left_value) + " " + str(right_value)

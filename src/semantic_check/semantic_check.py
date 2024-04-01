@@ -1,3 +1,4 @@
+from src.semantic_check.interpreter import TreeWalkInterpreter
 from src.cmp.semantic import Context, Method, Scope, Type
 from src.semantic_check.TypeBuilder import TypeBuilderVisitor
 from src.semantic_check.TypeChecker import TypeCheckerVisitor
@@ -45,3 +46,7 @@ class SemanticCheck:
             self.context, self.scope, self.errors, self.scope.functions
         )
         semantic_checking.visit(ast)
+
+        if len(self.errors) == 0:
+            interpreter = TreeWalkInterpreter()
+            interpreter.visit(ast)

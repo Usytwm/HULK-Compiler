@@ -7,12 +7,12 @@ from src.syntax_analysis.grammLR1 import EOF, gramm_Hulk_LR1
 from src.semantic_check.interpreter import TreeWalkInterpreter
 import unittest
 
+
 class TestHulk(unittest.TestCase):
     path = "test/Data/archivo.hulk"
     with open(path, "r", encoding="utf-8") as archivo:
         content = archivo.read()
-    print(content)
-    # define grammar
+
     grammar = gramm_Hulk_LR1()
 
     lexer = Lexer(
@@ -21,19 +21,23 @@ class TestHulk(unittest.TestCase):
     )
     parser = LR1Parser(grammar)
     checker = SemanticCheck()
-    interpreter = TreeWalkInterpreter()
+
+    # --------------------------------Análisis Léxico--------------------------------
 
     tokens = lexer(content)
 
     tokentypes = [token.token_type for token in tokens]
 
+    # ------------------------------Análisis Sintáctico------------------------------
+
     parser, operations = parser(tokentypes)
 
     ast = evaluate_reverse_parse(parser, operations, tokens)
 
-    #checker.semantick_check(ast)
+    # ------------------------------Análisis Semántico------------------------------
 
-    interpreter.visit(ast)
-   
+    checker.semantick_check(ast)
+
+
 if __name__ == "__main__":
     unittest.main()

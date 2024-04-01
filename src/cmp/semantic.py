@@ -149,8 +149,7 @@ class Type:
 
     def conforms_to(self, other):
         return (
-            other.bypass()
-            or self.name == other
+            self.name == other
             or self.inheritance is not None
             and self.inheritance.conforms_to(other)
         )

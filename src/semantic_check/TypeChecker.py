@@ -326,7 +326,7 @@ class TypeCheckerVisitor:
         type_2: Type = self.visit(node.expression_2, scope)
         print("Operacion aritmetica")
         if not type_1.conforms_to("number") or not type_2.conforms_to("number"):
-            print("Alguno no es un nnumero")
+            print("Alguno no es un numero")
             self.errors.append(
                 SemanticError(
                     f"Solo se pueden emplear aritmeticos entre expresiones aritmeticas."

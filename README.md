@@ -44,7 +44,7 @@ Para llevar las bibliotecas del entorno al `requirements.txt`, haz lo siguiente:
 pip freeze > requirements.txt
 ```
 
-## Ejecutar Tester
+## Ejecución
 
 Para ejecutar el proyecto:
 
