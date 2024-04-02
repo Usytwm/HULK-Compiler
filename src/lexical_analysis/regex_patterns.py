@@ -25,6 +25,7 @@ def build_regex():
         (For, "for"),
         (While, "while"),
         (Function, "function"),
+        (self_, "self"),
         (Type, "type"),
         (Inherits, "inherits"),
         (New, "new"),

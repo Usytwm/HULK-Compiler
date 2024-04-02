@@ -34,84 +34,98 @@ with open(path, "r", encoding="utf-8") as archivo:
 # ast = evaluate_reverse_parse(parser, operations, tokens)
 # checker = SemanticCheck()
 # checker.semantick_check(ast)
-print()
-ast0 = ProgramNode([NumberNode(42)])
-ast1 = ProgramNode([PrintStatmentNode(NumberNode(42))])
-ast2 = ProgramNode(
+
+
+ast0 = ProgramNode(
     [
-        PrintStatmentNode(
-            DivExpressionNode(
-                MultExpressionNode(
-                    PowExpressionNode(
-                        PlusExpressionNode(NumberNode(1), NumberNode(2)), NumberNode(3)
-                    ),
-                    NumberNode(4),
-                ),
-                NumberNode(5),
-            )
-        )
-    ]
-)
-ast3 = ProgramNode([PrintStatmentNode(StringNode("Hello World"))])
-ast4 = ProgramNode(
-    [
-        PrintStatmentNode(
-            StringConcatWithSpaceNode(
-                StringNode("The meaning of life is"), NumberNode(42)
-            )
-        )
-    ]
-)
-ast5 = ProgramNode(
-    [
-        PrintStatmentNode(
-            PlusExpressionNode(
-                PowExpressionNode(
-                    SinMathNode(MultExpressionNode(NumberNode(2), PINode())),
-                    NumberNode(2),
-                ),
-                CosMathNode(
-                    DivExpressionNode(
-                        MultExpressionNode(NumberNode(3), PINode()),
-                        LogCallNode(NumberNode(4), NumberNode(64)),
-                    )
-                ),
-            )
-        )
-    ]
-)
-ast6 = ProgramNode(
-    [
-        PrintStatmentNode(NumberNode(45)),
-        TypeDefinitionNode(
-            id="Point",
-            parameters=[],
-            inheritance=TypeNode("object"),
-            attributes=[
-                KernAssigmentNode("x", TypeNode("number")),
-            ],
-            methods=[
-                FunctionDefinitionNode(
-                    "setX",
-                    TypeNode("number"),
-                    [],
-                    PlusExpressionNode(NumberNode(4), NumberNode(5)),
+        KernAssigmentNode(IdentifierNode("x"), NumberNode(42)),
+        PrintStatmentNode(IdentifierNode("x")),
+        WhileStructureNode(
+            BoolCompGreaterNode(IdentifierNode("x"), NumberNode(40)),
+            [
+                DestroyNode(
+                    IdentifierNode("x"),
+                    SubsExpressionNode(IdentifierNode("x"), NumberNode(1)),
                 )
             ],
         ),
-        FunctionDefinitionNode(
-            "global_func",
-            TypeNode("Point"),
-            [],
-            PlusExpressionNode(NumberNode(4), NumberNode(5)),
-        ),
-        SqrtMathNode(NumberNode(4)),
     ]
 )
+# ast1 = ProgramNode([PrintStatmentNode(NumberNode(42))])
+# ast2 = ProgramNode(
+#     [
+#         PrintStatmentNode(
+#             DivExpressionNode(
+#                 MultExpressionNode(
+#                     PowExpressionNode(
+#                         PlusExpressionNode(NumberNode(1), NumberNode(2)), NumberNode(3)
+#                     ),
+#                     NumberNode(4),
+#                 ),
+#                 NumberNode(5),
+#             )
+#         )
+#     ]
+# )
+# ast3 = ProgramNode([PrintStatmentNode(StringNode("Hello World"))])
+# ast4 = ProgramNode(
+#     [
+#         PrintStatmentNode(
+#             StringConcatWithSpaceNode(
+#                 StringNode("The meaning of life is"), NumberNode(42)
+#             )
+#         )
+#     ]
+# )
+# ast5 = ProgramNode(
+#     [
+#         PrintStatmentNode(
+#             PlusExpressionNode(
+#                 PowExpressionNode(
+#                     SinMathNode(MultExpressionNode(NumberNode(2), PINode())),
+#                     NumberNode(2),
+#                 ),
+#                 CosMathNode(
+#                     DivExpressionNode(
+#                         MultExpressionNode(NumberNode(3), PINode()),
+#                         LogCallNode(NumberNode(4), NumberNode(64)),
+#                     )
+#                 ),
+#             )
+#         )
+#     ]
+# )
+# ast6 = ProgramNode(
+#     [
+#         PrintStatmentNode(NumberNode(45)),
+#         TypeDefinitionNode(
+#             id="Point",
+#             parameters=[],
+#             inheritance=TypeNode("object"),
+#             attributes=[
+#                 KernAssigmentNode("x", TypeNode("number")),
+#             ],
+#             methods=[
+#                 FunctionDefinitionNode(
+#                     "setX",
+#                     TypeNode("number"),
+#                     [],
+#                     PlusExpressionNode(NumberNode(4), NumberNode(5)),
+#                 )
+#             ],
+#         ),
+#         FunctionDefinitionNode(
+#             "global_func",
+#             TypeNode("Point"),
+#             [],
+#             PlusExpressionNode(NumberNode(4), NumberNode(5)),
+#         ),
+#         SqrtMathNode(NumberNode(4)),
+#     ]
+# )
 
-print_aritmetic_tests = [ast0, ast1, ast2, ast3, ast4, ast5, ast6]
+print_aritmetic_tests = [ast0]
 for index_test in range(len(print_aritmetic_tests)):
-    if index_test == 4:
-        print(f"Test - {index_test}")
-        checker = SemanticCheck()
-        checker.semantick_check(print_aritmetic_tests[index_test])
+    print(f"Test - {index_test}")
+    checker = SemanticCheck()
+    checker.semantick_check(print_aritmetic_tests[index_test])

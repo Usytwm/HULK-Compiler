@@ -9,7 +9,7 @@ class SemanticCheck:
     def __init__(self) -> None:
         self.context = Context()
         self.scope = Scope()
-        default_types = ["object", "string", "number", "bool", "void"]
+        default_types = ["object", "string", "number", "bool", "void", "any"]
         for type in default_types:
             self.context.create_type(type)
         default_functions_only_numerical_arguments = ["sen", "cos", "sqrt", "exp"]
