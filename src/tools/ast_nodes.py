@@ -239,6 +239,10 @@ class PINode(NumberNode):
     def __init__(self) -> None:
         super().__init__(math.pi)
 
+class ENode(NumberNode):
+    def __init__(self) -> None:
+        super().__init__(math.e)
+
 
 # ------------------------------------------------------------Math-Operations-----------------------------------------------------------------------------------#
 class MathOperationNode(UnaryNode):
