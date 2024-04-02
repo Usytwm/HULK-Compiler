@@ -38,27 +38,10 @@ with open(path, "r", encoding="utf-8") as archivo:
 
 ast0 = ProgramNode(
     [
-        FunctionDefinitionNode(
-            IdentifierNode("f"),
-            TypeNode("bool"),
-            [
-                {IdentifierNode("z"): TypeNode("bool")},
-                {IdentifierNode("y"): TypeNode("bool")},
-            ],
-            [
-                [
-                    KernAssigmentNode(IdentifierNode("z"), IdentifierNode("z")),
-                    KernAssigmentNode(IdentifierNode("y"), IdentifierNode("y")),
-                ],
-                BoolAndNode(IdentifierNode("z"), IdentifierNode("y")),
-            ],
-        ),
         KernAssigmentNode(IdentifierNode("x"), NumberNode(42)),
         PrintStatmentNode(IdentifierNode("x")),
         WhileStructureNode(
-            FunctionCallNode(
-                IdentifierNode("f"), [BooleanNode(True), BooleanNode(False)]
-            ),
+            BoolCompGreaterNode(IdentifierNode("x"), NumberNode(40)),
             [
                 DestroyNode(
                     IdentifierNode("x"),

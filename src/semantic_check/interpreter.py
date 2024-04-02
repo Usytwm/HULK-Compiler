@@ -40,11 +40,12 @@ class TreeWalkInterpreter:
         self, node: KernAssigmentNode, scope: Scope = None, Context: Context = None
     ):
         scope.asign_variable(node.id.id, self.visit(node.expression, scope))
-        print("jh")
+        return scope.get_variable(node.id.id)
 
     @visitor.when(DestroyNode)
     def visit(self, node: DestroyNode, scope: Scope = None, Context: Context = None):
         scope.asign_variable(node.id.id, self.visit(node.expression, scope))
+        return scope.get_variable(node.id.id)
 
     @visitor.when(PrintStatmentNode)
     def visit(
@@ -52,6 +53,7 @@ class TreeWalkInterpreter:
     ):
         value = self.visit(node.expression, scope, Context)
         print(value)
+        return value
 
     @visitor.when(NumberNode)
     def visit(self, node: NumberNode, scope: Scope = None, Context: Context = None):
@@ -67,8 +69,9 @@ class TreeWalkInterpreter:
     ):
         context = Context()
         self.currentType = context.create_type(node.id)
+        child = scope.create_child()
         for method in node.methods:
-            self.visit(method)
+            self.visit(method, child, context)
         self.currentType = None
 
     @visitor.when(FunctionDefinitionNode)
@@ -86,8 +89,9 @@ class TreeWalkInterpreter:
             except:
                 scope.node[None] = [node]
         for param in node.parameters:
-            arg, type_att = param.items[0].key, param.items[0].value
+            arg, type_att = list(param.keys())[0].id, list(param.values())[0]
             scope.define_variable(arg, type_att)
+            print("jh")
 
     @visitor.when(FunctionCallNode)
     def visit(
@@ -108,8 +112,14 @@ class TreeWalkInterpreter:
                 )
             )[0]
 
+        for i, param in enumerate(function.parameters):
+            scope.asign_variable(
+                list(param.keys())[0].id, self.visit(node.args[i], scope, Context)
+            )
+        ret = None
         for statment in function.body:
-            self.visit(statment, scope, Context)
+            ret = self.visit(statment, scope, Context)
+        return ret
 
     @visitor.when(IfStructureNode)
     def visit(
@@ -135,9 +145,11 @@ class TreeWalkInterpreter:
     def visit(
         self, node: WhileStructureNode, scope: Scope = None, Context: Context = None
     ):
+        ret = None
         while self.visit(node.condition, scope, Context):
             for statment in node.body:
-                self.visit(statment, scope, Context)
+                ret = self.visit(statment, scope, Context)
+        return ret
 
     @visitor.when(IdentifierNode)
     def visit(self, node: IdentifierNode, scope: Scope = None, Context: Context = None):
@@ -162,8 +174,8 @@ class TreeWalkInterpreter:
 
     @visitor.when(BoolAndNode)
     def visit(self, node: BoolAndNode, scope: Scope = None, Context: Context = None):
-        left_value = self.visit(node.left)
-        right_value = self.visit(node.right)
+        left_value = self.visit(node.left, scope, Context)
+        right_value = self.visit(node.right, scope, Context)
         return left_value and right_value
 
     @visitor.when(BoolOrNode)
