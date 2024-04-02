@@ -91,7 +91,6 @@ class TreeWalkInterpreter:
         for param in node.parameters:
             arg, type_att = list(param.keys())[0].id, list(param.values())[0]
             scope.define_variable(arg, type_att)
-            print("jh")
 
     @visitor.when(FunctionCallNode)
     def visit(
@@ -319,12 +318,16 @@ class TreeWalkInterpreter:
         expression_value = self.visit(node.expression, scope, Context)
         return math.exp(expression_value)
 
-    @visitor.when(RandomCallNode)
-    def visit(self, node: RandomCallNode, scope: Scope = None, Context: Context = None):
+    @visitor.when(RandomFunctionCallNode)
+    def visit(
+        self, node: RandomFunctionCallNode, scope: Scope = None, Context: Context = None
+    ):
         return random.random()
 
-    @visitor.when(LogCallNode)
-    def visit(self, node: LogCallNode, scope: Scope = None, Context: Context = None):
+    @visitor.when(LogFunctionCallNode)
+    def visit(
+        self, node: LogFunctionCallNode, scope: Scope = None, Context: Context = None
+    ):
         base_value = self.visit(node.base, scope, Context)
         expression_value = self.visit(node.expression, scope, Context)
         return math.log(expression_value, base_value)

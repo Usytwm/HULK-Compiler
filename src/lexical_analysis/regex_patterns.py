@@ -45,7 +45,6 @@ def build_regex():
         (False_, "false"),
         (Is, "is"),
         (PI, "PI"),
-        (E, "E"),
         (identifier, "[a-zA-Z_][a-zA-Z0-9_]*"),
         (
             string,

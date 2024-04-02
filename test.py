@@ -9,18 +9,11 @@ from src.tools.ast_nodes import *
 pathhulk = "test/Data/archivo.hulk"
 with open(pathhulk, "r", encoding="utf-8") as archivo:
     contenthulk = archivo.read()
-path = "test/Data/prueba.txt"
-with open(path, "r", encoding="utf-8") as archivo:
-    content = archivo.read()
+
 
 # define grammar
 grammar = gramm_Hulk_LR1()
-text = """
-let a = 5, b = 10, c = 20 in {
-    print(a+b);
-    print(b*c);
-    print(c/a);
-};"""
+# text = """function cot(x: number) => 1 / tan(x);"""
 
 lexer = Lexer(
     build_regex(),
@@ -29,6 +22,7 @@ lexer = Lexer(
 
 tokens = lexer(contenthulk)
 tokentypes = [token.token_type for token in tokens]
+print(tokentypes)
 parser = LR1Parser(grammar)
 parser, operations = parser(tokentypes)
 ast = evaluate_reverse_parse(parser, operations, tokens)

@@ -49,7 +49,7 @@ class ProgramNode(Node):
 class IdentifierNode(Node):
     def __init__(self, id) -> None:
         super().__init__()
-        self.id = id
+        self.id: str = id
 
 
 class PrintStatmentNode(Node):
@@ -84,7 +84,7 @@ class FunctionDefinitionNode(Node):
         self,
         id: IdentifierNode,
         type_annotation: TypeNode,
-        parameters: list[dict],
+        parameters: list[dict[IdentifierNode, TypeNode]],
         body,
     ) -> None:
         super().__init__()
@@ -154,7 +154,7 @@ class TypeDefinitionNode(Node):
         super().__init__()
         self.id = id
         self.parameters = parameters
-        self.inheritance = inheritance
+        self.inheritance: InheritanceNode = inheritance
         self.attributes: List[KernAssigmentNode] = attributes
         self.methods = methods
 
@@ -162,7 +162,7 @@ class TypeDefinitionNode(Node):
 class InheritanceNode(Node):
     def __init__(self, type) -> None:
         super().__init__()
-        self.type = type
+        self.type: IdentifierNode = type
 
 
 # ? Verificar que son los parametros type y args
@@ -239,16 +239,11 @@ class PINode(NumberNode):
     def __init__(self) -> None:
         super().__init__(math.pi)
 
-class ENode(NumberNode):
-    def __init__(self) -> None:
-        super().__init__(math.e)
-
 
 # ------------------------------------------------------------Math-Operations-----------------------------------------------------------------------------------#
 class MathOperationNode(UnaryNode):
     def __init__(self, expression) -> None:
         super().__init__(expression)
-        self.expression = expression
 
 
 class SqrtMathNode(MathOperationNode):
@@ -275,18 +270,6 @@ class TanMathNode(MathOperationNode):
 class ExpMathNode(MathOperationNode):
     def __init__(self, expression) -> None:
         super().__init__(expression)
-
-
-class RandomCallNode(Node):
-    def __init__(self) -> None:
-        super().__init__()
-
-
-class LogCallNode(Node):
-    def __init__(self, base, expression) -> None:
-        super().__init__()
-        self.base = base
-        self.expression = expression
 
 
 # -----------------------------------Let-In--------------------------------------------------------------------------------------------------------------------#
@@ -334,7 +317,6 @@ class StringConcatWithSpaceNode(StringConcatNode):
         super().__init__(left, right)
 
 
-# TODO Ver que es esto
 class BoolIsTypeNode(BinaryNode):
     def __init__(self, expression, type):
         super().__init__(expression, type)
@@ -388,3 +370,15 @@ class BoolCompGreaterEqualNode(BoolCompAritNode):
 class BoolCompNotEqualNode(BoolCompAritNode):
     def __init__(self, left, right):
         super().__init__(left, right)
+
+
+class RandomFunctionCallNode(Node):
+    def __init__(self) -> None:
+        super().__init__()
+
+
+class LogFunctionCallNode(Node):
+    def __init__(self, base, expression) -> None:
+        super().__init__()
+        self.base = base
+        self.expression = expression

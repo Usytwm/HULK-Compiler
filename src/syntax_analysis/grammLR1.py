@@ -13,8 +13,9 @@ Program = G.NonTerminal("Program", True)
     function_call,
     arguments,
     parameters,
+    par,
 ) = G.NonTerminals(
-    "statement_list statement condition expression term factor function_call arguments parameters"
+    "statement_list statement condition expression term factor function_call arguments parameters par"
 )
 (
     type_definition,
@@ -102,8 +103,8 @@ Program = G.NonTerminal("Program", True)
 Comma, Dot, If, Else, While, For, Let, Function, Colon, PowStar, self_ = G.Terminals(
     ", . if else while for let function : ** self"
 )
-identifier, number, string, Elif, Type, Inherits, New, In, arroba, arroba2, PI, E = (
-    G.Terminals("identifier number string elif type inherits new in @ @@ PI E")
+identifier, number, string, Elif, Type, Inherits, New, In, arroba, arroba2, PI = (
+    G.Terminals("identifier number string elif type inherits new in @ @@ PI")
 )
 (
     sComil,
@@ -243,10 +244,11 @@ function_definition %= (
     lambda h, s: FunctionDefinitionNode(IdentifierNode(s[2]), s[6], s[4], [s[8]]),
 )
 
-parameters %= expression + type_annotation + Comma + parameters, lambda h, s: [
-    {s[1]: s[2]}
+parameters %= identifier + type_annotation + Comma + parameters, lambda h, s: [
+    {IdentifierNode(s[1]): s[2]}
 ] + [s[4]]
-parameters %= expression + type_annotation, lambda h, s: {s[1]: s[2]}
+# * Puse el diccionario que se creaba solo entre corchetes para formar la lisat
+parameters %= identifier + type_annotation, lambda h, s: [{IdentifierNode(s[1]): s[2]}]
 parameters %= G.Epsilon, lambda h, s: []
 
 type_annotation %= Colon + identifier, lambda h, s: TypeNode(s[2])
@@ -320,7 +322,7 @@ member_access %= (
     factor + Dot + identifier + oPar + arguments + cPar,
     lambda h, s: MemberAccessNode(s[1], IdentifierNode(s[3]), s[5]),
 )
-# member_access %= factor + Dot + identifier , lambda h, s: MemberAccesNode(s[1], s[3], [])  
+# member_access %= factor + Dot + identifier , lambda h, s: MemberAccesNode(s[1], s[3], [])  #Todo member access Los parametros son privados de la clase #! NAOMI ARREGLA ESTO EN EL CHECKEO SEMANTICO ❤️
 kern_instance_creation %= (
     New + identifier + oPar + arguments + cPar,
     lambda h, s: KernInstanceCreationNode(IdentifierNode(s[2]), s[4]),
@@ -331,12 +333,14 @@ math_call %= cos + oPar + ExprNum + cPar, lambda h, s: CosMathNode(s[3])
 math_call %= sin + oPar + ExprNum + cPar, lambda h, s: SinMathNode(s[3])
 math_call %= tan + oPar + ExprNum + cPar, lambda h, s: TanMathNode(s[3])
 math_call %= exp + oPar + ExprNum + cPar, lambda h, s: ExpMathNode(s[3])
-math_call %= log + oPar + ExprNum + Comma + ExprNum + cPar, lambda h, s: LogCallNode(
-    s[3], s[5]
+math_call %= (
+    log + oPar + ExprNum + Comma + ExprNum + cPar,
+    lambda h, s: LogFunctionCallNode(s[3], [s[5]]),
 )
-math_call %= rand + oPar + cPar, lambda h, s: RandomCallNode()
+math_call %= rand + oPar + cPar, lambda h, s: RandomFunctionCallNode(
+    IdentifierNode("random"), []
+)
 math_call %= PI, lambda h, s: PINode()
-math_call %= E, lambda h, s: ENode()
 
 arguments %= expr_statement + Comma + arguments, lambda h, s: [s[1]] + s[3]
 arguments %= expr_statement, lambda h, s: [s[1]]
@@ -346,20 +350,20 @@ arguments %= G.Epsilon, lambda h, s: []
 type_definition %= (
     Type
     + identifier
-    + oPar
-    + parameters
-    + cPar
+    + par
     + inheritance
     + oBrace
     + attribute_definition
     + method_definition
     + cBrace,
-    lambda h, s: TypeDefinitionNode(IdentifierNode(s[2]), s[4], s[6], s[8], s[9]),
+    lambda h, s: TypeDefinitionNode(IdentifierNode(s[2]), s[3], s[4], s[6], s[7]),
 )
-
+par %= oPar + parameters + cPar, lambda h, s: s[2]
+par %= G.Epsilon, lambda h, s: []
+# self_ + Dot +
 attribute_definition %= (
-    self_ + Dot + kern_assignment + Semi + attribute_definition,
-    lambda h, s: s[5] + [s[3]],
+    kern_assignment + Semi + attribute_definition,
+    lambda h, s: s[3] + [s[1]],
 )
 attribute_definition %= G.Epsilon, lambda h, s: []
 
@@ -391,7 +395,7 @@ method_definition %= (
 method_definition %= G.Epsilon, lambda h, s: []
 
 inheritance %= Inherits + identifier, lambda h, s: InheritanceNode(IdentifierNode(s[2]))
-inheritance %= G.Epsilon, lambda h, s: InheritanceNode("object")
+inheritance %= G.Epsilon, lambda h, s: InheritanceNode(IdentifierNode("object"))
 
 EOF = G.EOF
 

@@ -56,7 +56,10 @@ class TypeCheckerVisitor:
                 SemanticError(f"La variable {node.id.id} ya esta definida.")
             )
         else:
-            scope.define_variable(node.id.id, self.visit(node.expression, scope))
+            scope.define_variable(
+                node.id.id, self.visit(node.expression, scope)
+            )  # * Aqui en el 2do parametro de la funcion se infiere el tipo de la expresion que se le va a asignar a la variable
+
         return self.context.get_type("any")
 
     @visitor.when(TypeNode)
@@ -91,8 +94,7 @@ class TypeCheckerVisitor:
         inner_scope: Scope = scope.create_child()
         for i in range(len(method.param_names)):
             inner_scope.define_variable(method.param_names[i], method.param_types[i])
-
-        for statment in node.body[-1]:
+        for statment in node.body[:-1]:
             self.visit(statment, inner_scope)
 
         return (
@@ -181,7 +183,9 @@ class TypeCheckerVisitor:
                     SemanticError(f"La variable {id} ya esta definida en este scope.")
                 )
             else:
-                inner_scope.define_variable(id, self.visit(expr, inner_scope))
+                inner_scope.define_variable(
+                    id, self.visit(expr, inner_scope)
+                )  # * Aqui en el 2do parametro de la funcion se infiere el tipo de la expresion que se le va a asignar a la variable
 
         for increment_assigment in node.increment_condition:
             self.visit(increment_assigment, inner_scope)
@@ -205,7 +209,7 @@ class TypeCheckerVisitor:
         for att in node.attributes:
             inner_scope.define_variable(
                 att.id.id, self.visit(att.expression, temp_scope)
-            )
+            )  # * Aqui en el 2do parametro de la funcion se infiere el tipo de la expresion que se le va a asignar a la variable
 
         for method in node.methods:
             self.visit(method, inner_scope)
@@ -310,9 +314,7 @@ class TypeCheckerVisitor:
     def visit(self, node: AritmeticExpression, scope: Scope):
         type_1: Type = self.visit(node.expression_1, scope)
         type_2: Type = self.visit(node.expression_2, scope)
-        print("Operacion aritmetica")
         if not type_1.conforms_to("number") or not type_2.conforms_to("number"):
-            print("Alguno no es un numero")
             self.errors.append(
                 SemanticError(
                     f"Solo se pueden emplear aritmeticos entre expresiones aritmeticas."
@@ -324,7 +326,7 @@ class TypeCheckerVisitor:
 
     @visitor.when(MathOperationNode)
     def visit(self, node: MathOperationNode, scope: Scope):
-        if not self.visit(node.expression, scope).conforms_to("number"):
+        if not self.visit(node.node, scope).conforms_to("number"):
             self.errors.append(
                 SemanticError(f"Esta funcion solo puede ser aplicada a numeros.")
             )
@@ -332,8 +334,8 @@ class TypeCheckerVisitor:
 
         return self.context.get_type("number")
 
-    @visitor.when(LogCallNode)
-    def visit(self, node: LogCallNode, scope: Scope):
+    @visitor.when(LogFunctionCallNode)
+    def visit(self, node: LogFunctionCallNode, scope: Scope):
         if not self.visit(node.base, scope).conforms_to("number") or not self.visit(
             node.expression, scope
         ).conforms_to("number"):
@@ -342,6 +344,10 @@ class TypeCheckerVisitor:
             )
             return self.context.get_type("any")
 
+        return self.context.get_type("number")
+
+    @visitor.when(RandomFunctionCallNode)
+    def visit(self, node: RandomFunctionCallNode, scope: Scope):
         return self.context.get_type("number")
 
     @visitor.when(LetInNode)
@@ -457,6 +463,18 @@ class TypeCheckerVisitor:
         except:
             return self.context.get_type("string")
 
+    @visitor.when(BoolIsTypeNode)
+    def visit(self, node: BoolIsTypeNode, scope: Scope):
+        return self.visit(node.left, scope).conforms_to(self.visit(node.right, scope))
+
+    @visitor.when(IdentifierNode)
+    def visit(self, node: IdentifierNode, scope: Scope):
+        if scope.is_defined(node.id):
+            return scope.find_variable(node.id).type
+
+        self.errors.append(SemanticError(f"La variable {node.id} no esta deifinida"))
+        return self.context.get_type("any")
+
     @visitor.when(BooleanNode)
     def visit(self, node: BooleanNode, scope):
         try:
@@ -464,15 +482,3 @@ class TypeCheckerVisitor:
             return self.context.create_type("bool")
         except:
             return self.context.get_type("any")
-
-    @visitor.when(BoolIsTypeNode)
-    def visit(self, node: BoolIsTypeNode, scope: Scope):
-        return self.visit(node.left, scope).conforms_to(self.visit(node.right, scope))
-
-    @visitor.when(IdentifierNode)
-    def visit(self, node: IdentifierNode, scope: Scope):
-        if self.scope.is_defined(node.id):
-            return self.scope.find_variable(node.id).type
-
-        self.errors.append(SemanticError(f"La variable {node.id} no esta deifinida"))
-        return self.context.get_type("any")

@@ -27,7 +27,6 @@ class TypeCollectorVisitor:
                 SemanticError(f"El nombre de tipo {node.id.id} ya ha sido tomado")
             )
 
-    # Aqui solo se va a entrar si la funcion esta definida en el ProgramNode
     @visitor.when(FunctionDefinitionNode)
     def visit(self, node: FunctionDefinitionNode):
         if not node.id.id in self.scope.functions:

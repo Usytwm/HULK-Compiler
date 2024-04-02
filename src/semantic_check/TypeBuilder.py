@@ -21,14 +21,13 @@ class TypeBuilderVisitor:
 
     @visitor.when(TypeDefinitionNode)
     def visit(self, node: TypeDefinitionNode):
-
         self.currentType: Type = self.context.get_type(node.id.id)
         try:
-            inheritance = self.context.get_type(node.inheritance.type)
+            inheritance = self.context.get_type(node.inheritance.type.id)
         except:
             self.errors.append(
                 SemanticError(
-                    f"El tipo {node.inheritance.type} del que se hereda no esta definido"
+                    f"El tipo {str(node.inheritance.type.id)} del que se hereda no esta definido"
                 )
             )
             inheritance = self.context.get_type("object")
@@ -93,11 +92,9 @@ class TypeBuilderVisitor:
             list(parama.items())[0] for parama in node.parameters
         ]
         arg_names = [name[0].id for name in arg_names]
-        print(arg_names)
 
         arg_types = []
         aux = [list(parama.items())[0] for parama in node.parameters]
-        print(aux)
         for parama in aux:
             try:
                 arg_types.append(self.context.get_type(parama[1].type))

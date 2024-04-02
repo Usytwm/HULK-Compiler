@@ -8,31 +8,25 @@ from src.semantic_check.TypeCollector import TypeCollectorVisitor
 class SemanticCheck:
     def __init__(self) -> None:
         self.context = Context()
-        self.scope = Scope()
-        default_types = ["object", "string", "number", "bool", "void", "any"]
+        self.context.create_type("object")
+        default_types = ["number", "string", "bool", "void", "any"]
         for type in default_types:
             self.context.create_type(type)
-        default_functions_only_numerical_arguments = ["sin", "cos", "sqrt", "exp"]
-        for function in default_functions_only_numerical_arguments:
-            self.scope.functions[function] = Method(
-                function,
-                ["expression"],
-                [self.context.get_type("number")],
-                self.context.get_type("number"),
-            )
+            self.context.get_type(type).parent = self.context.get_type("object")
 
-        self.scope.functions["log"] = Method(
+        # ------------------Inicializando funciones por defecto-----------------------------------------------#
+        self.scope = Scope(parent=None)
+
+        self.default_functions = [
+            "sin",
+            "cos",
+            "sqrt",
+            "exp",
+            "tan",
+            "rand",
             "log",
-            ["base", "expression"],
-            [self.context.get_type("number") for _ in range(2)],
-            Type("number"),
-        )
-        self.scope.functions["print"] = Method(
-            "print", ["object"], [Type("object")], self.context.get_type("void")
-        )
-        self.scope.functions["rand"] = Method(
-            "rand", [], [], self.context.get_type("number")
-        )
+            "print",
+        ]
         self.errors = []
 
     def semantick_check(self, ast):
@@ -43,10 +37,10 @@ class SemanticCheck:
         build_collector.visit(ast)
 
         semantic_checking = TypeCheckerVisitor(
-            self.context, self.scope, self.errors, self.scope.functions
+            self.context, self.scope, self.errors, self.default_functions
         )
         semantic_checking.visit(ast)
-
+        print(self.errors)
         if len(self.errors) == 0:
             interpreter = TreeWalkInterpreter()
             interpreter.visit(ast)
