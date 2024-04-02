@@ -12,7 +12,7 @@ class SemanticCheck:
         default_types = ["object", "string", "number", "bool", "void", "any"]
         for type in default_types:
             self.context.create_type(type)
-        default_functions_only_numerical_arguments = ["sen", "cos", "sqrt", "exp"]
+        default_functions_only_numerical_arguments = ["sin", "cos", "sqrt", "exp"]
         for function in default_functions_only_numerical_arguments:
             self.scope.functions[function] = Method(
                 function,
