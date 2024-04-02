@@ -30,6 +30,7 @@ def build_regex():
         (Inherits, "inherits"),
         (New, "new"),
         (arroba, "@"),
+        (arroba2, "@@"),
         # (sqrt, "sqrt"),
         # (sin, "sin"),
         # (cos, "cos"),
@@ -44,6 +45,7 @@ def build_regex():
         (False_, "false"),
         (Is, "is"),
         (PI, "PI"),
+        (E, "E"),
         (identifier, "[a-zA-Z_][a-zA-Z0-9_]*"),
         (
             string,

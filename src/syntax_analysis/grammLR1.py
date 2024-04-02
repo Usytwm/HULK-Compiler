@@ -102,8 +102,8 @@ Program = G.NonTerminal("Program", True)
 Comma, Dot, If, Else, While, For, Let, Function, Colon, PowStar, self_ = G.Terminals(
     ", . if else while for let function : ** self"
 )
-identifier, number, string, Elif, Type, Inherits, New, In, arroba, arroba2, PI = (
-    G.Terminals("identifier number string elif type inherits new in @ @@ PI")
+identifier, number, string, Elif, Type, Inherits, New, In, arroba, arroba2, PI, E = (
+    G.Terminals("identifier number string elif type inherits new in @ @@ PI E")
 )
 (
     sComil,
@@ -320,7 +320,7 @@ member_access %= (
     factor + Dot + identifier + oPar + arguments + cPar,
     lambda h, s: MemberAccessNode(s[1], IdentifierNode(s[3]), s[5]),
 )
-# member_access %= factor + Dot + identifier , lambda h, s: MemberAccesNode(s[1], s[3], [])  #Todo member access Los parametros son privados de la clase #! NAOMI ARREGLA ESTO EN EL CHECKEO SEMANTICO ❤️
+# member_access %= factor + Dot + identifier , lambda h, s: MemberAccesNode(s[1], s[3], [])  
 kern_instance_creation %= (
     New + identifier + oPar + arguments + cPar,
     lambda h, s: KernInstanceCreationNode(IdentifierNode(s[2]), s[4]),
@@ -336,6 +336,7 @@ math_call %= log + oPar + ExprNum + Comma + ExprNum + cPar, lambda h, s: LogCall
 )
 math_call %= rand + oPar + cPar, lambda h, s: RandomCallNode()
 math_call %= PI, lambda h, s: PINode()
+math_call %= E, lambda h, s: ENode()
 
 arguments %= expr_statement + Comma + arguments, lambda h, s: [s[1]] + s[3]
 arguments %= expr_statement, lambda h, s: [s[1]]
