@@ -46,6 +46,12 @@ class ProgramNode(Node):
         self.statments = statments
 
 
+class IdentifierNode(Node):
+    def __init__(self, id) -> None:
+        super().__init__()
+        self.id = id
+
+
 class PrintStatmentNode(Node):
     def __init__(self, expression) -> None:
         super().__init__()
@@ -74,9 +80,15 @@ class TypeNode(Node):
 
 
 class FunctionDefinitionNode(Node):
-    def __init__(self, id, type_annotation, parameters: list[dict], body) -> None:
+    def __init__(
+        self,
+        id: IdentifierNode,
+        type_annotation: TypeNode,
+        parameters: list[dict],
+        body,
+    ) -> None:
         super().__init__()
-        self.id = id
+        self.id: IdentifierNode = id
         self.type_annotation = type_annotation
         self.parameters = parameters
         self.body = body
@@ -282,7 +294,7 @@ class LetInNode(Node):
 
 
 class LetInExpressionNode(Node):
-    def init(self, assigments, body) -> None:
+    def __init__(self, assigments, body) -> None:
         super().__init__()
         self.assigments = assigments
         self.body = body
@@ -308,12 +320,6 @@ class StringNode(Node):
         self.value = value
 
 
-class IdentifierNode(Node):
-    def __init__(self, id) -> None:
-        super().__init__()
-        self.id = id
-
-
 class StringConcatNode(BinaryNode):
     def __init__(self, left, right):
         super().__init__(left, right)
@@ -328,8 +334,6 @@ class StringConcatWithSpaceNode(StringConcatNode):
 class BoolIsTypeNode(BinaryNode):
     def __init__(self, expression, type):
         super().__init__(expression, type)
-        self.expression = expression
-        self.type = type
 
 
 class BoolAndNode(BooleanExpression):

@@ -267,6 +267,17 @@ class Scope:
     def __len__(self):
         return len(self.locals)
 
+    def method_is_define(self, vname, params_num):
+        try:
+            methods = [
+                method
+                for method in self.functions[vname]
+                if len(method.param_names) == params_num
+            ]
+            return len(methods) != 0 if len(self.functions[vname]) != 0 else False
+        except:
+            raise SemanticError(f"La funcion {vname} no esta definida")
+
     def create_child(self):
         child = Scope(self)
         self.children.append(child)
