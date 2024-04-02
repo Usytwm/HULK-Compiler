@@ -38,15 +38,35 @@ with open(path, "r", encoding="utf-8") as archivo:
 
 ast0 = ProgramNode(
     [
-        KernAssigmentNode(IdentifierNode("x"), NumberNode(42)),
+        KernAssigmentNode(IdentifierNode("x"), NumberNode(0)),
         PrintStatmentNode(IdentifierNode("x")),
-        WhileStructureNode(
-            BoolCompGreaterNode(IdentifierNode("x"), NumberNode(40)),
+        ForStructureNode(
+            [KernAssigmentNode(IdentifierNode("i"), NumberNode(0))],
+            BoolCompLessEqualNode(IdentifierNode("i"), NumberNode(10)),
             [
                 DestroyNode(
-                    IdentifierNode("x"),
-                    SubsExpressionNode(IdentifierNode("x"), NumberNode(1)),
+                    IdentifierNode("i"),
+                    PlusExpressionNode(IdentifierNode("i"), NumberNode(1)),
                 )
+            ],
+            [
+                ForStructureNode(
+                    [KernAssigmentNode(IdentifierNode("j"), NumberNode(0))],
+                    BoolCompLessEqualNode(IdentifierNode("j"), NumberNode(10)),
+                    [
+                        DestroyNode(
+                            IdentifierNode("j"),
+                            PlusExpressionNode(IdentifierNode("j"), NumberNode(1)),
+                        )
+                    ],
+                    [
+                        DestroyNode(
+                            IdentifierNode("x"),
+                            PlusExpressionNode(IdentifierNode("x"), NumberNode(1)),
+                        ),
+                        PrintStatmentNode(IdentifierNode("x")),
+                    ],
+                ),
             ],
         ),
     ]

@@ -36,16 +36,16 @@ class SemanticCheck:
         self.errors = []
 
     def semantick_check(self, ast):
-        type_collector = TypeCollectorVisitor(self.context, self.scope, self.errors)
-        type_collector.visit(ast)
+        # type_collector = TypeCollectorVisitor(self.context, self.scope, self.errors)
+        # type_collector.visit(ast)
 
-        build_collector = TypeBuilderVisitor(self.context, self.scope, self.errors)
-        build_collector.visit(ast)
+        # build_collector = TypeBuilderVisitor(self.context, self.scope, self.errors)
+        # build_collector.visit(ast)
 
-        semantic_checking = TypeCheckerVisitor(
-            self.context, self.scope, self.errors, self.scope.functions
-        )
-        semantic_checking.visit(ast)
+        # semantic_checking = TypeCheckerVisitor(
+        #     self.context, self.scope, self.errors, self.scope.functions
+        # )
+        # semantic_checking.visit(ast)
 
         if len(self.errors) == 0:
             interpreter = TreeWalkInterpreter()

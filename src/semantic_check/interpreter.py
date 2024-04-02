@@ -160,17 +160,19 @@ class TreeWalkInterpreter:
         self, node: ForStructureNode, scope: Scope = None, Context: Context = None
     ):
         for init_assignment in node.init_assigments:
-            self.visit(init_assignment)
-        while self.visit(node.condition):
-            self.visit(node.body)
-            for increment_assignment in node.increment_condition:
-                self.visit(increment_assignment)
-        #! NO LO TENGO CLARO
+            self.visit(init_assignment, scope, Context)
+        ret = None
+        while self.visit(node.condition, scope, Context):
+            for statment in node.body:
+                ret = self.visit(statment, scope, Context)
+            for increment in node.increment_condition:
+                self.visit(increment, scope, Context)
+        return ret
 
     @visitor.when(BoolIsTypeNode)
     def visit(self, node: BoolIsTypeNode, scope: Scope = None, Context: Context = None):
-        value = self.visit(node.expression)
-        return isinstance(value, node.type)
+        value = self.visit(node.left, scope, Context)
+        return isinstance(value, node.right)
 
     @visitor.when(BoolAndNode)
     def visit(self, node: BoolAndNode, scope: Scope = None, Context: Context = None):
@@ -180,21 +182,21 @@ class TreeWalkInterpreter:
 
     @visitor.when(BoolOrNode)
     def visit(self, node: BoolOrNode, scope: Scope = None, Context: Context = None):
-        left_value = self.visit(node.left)
-        right_value = self.visit(node.right)
+        left_value = self.visit(node.left, scope, Context)
+        right_value = self.visit(node.right, scope, Context)
         return left_value or right_value
 
     @visitor.when(BoolNotNode)
     def visit(self, node: BoolNotNode, scope: Scope = None, Context: Context = None):
-        value = self.visit(node.node)
+        value = self.visit(node.node, scope, Context)
         return not value
 
     @visitor.when(BoolCompLessNode)
     def visit(
         self, node: BoolCompLessNode, scope: Scope = None, Context: Context = None
     ):
-        left_value = self.visit(node.left)
-        right_value = self.visit(node.right)
+        left_value = self.visit(node.left, scope, Context)
+        right_value = self.visit(node.right, scope, Context)
         return left_value < right_value
 
     @visitor.when(BoolCompGreaterNode)
@@ -213,8 +215,8 @@ class TreeWalkInterpreter:
     def visit(
         self, node: BoolCompLessEqualNode, scope: Scope = None, Context: Context = None
     ):
-        left_value = self.visit(node.left)
-        right_value = self.visit(node.right)
+        left_value = self.visit(node.left, scope, Context)
+        right_value = self.visit(node.right, scope, Context)
         return left_value <= right_value
 
     @visitor.when(BoolCompGreaterEqualNode)
@@ -224,16 +226,16 @@ class TreeWalkInterpreter:
         scope: Scope = None,
         Context: Context = None,
     ):
-        left_value = self.visit(node.left)
-        right_value = self.visit(node.right)
+        left_value = self.visit(node.left, scope, Context)
+        right_value = self.visit(node.right, scope, Context)
         return left_value >= right_value
 
     @visitor.when(BoolCompEqualNode)
     def visit(
         self, node: BoolCompEqualNode, scope: Scope = None, Context: Context = None
     ):
-        left_value = self.visit(node.left)
-        right_value = self.visit(node.right)
+        left_value = self.visit(node.left, scope, Context)
+        right_value = self.visit(node.right, scope, Context)
         return left_value == right_value
 
     @visitor.when(BoolCompNotEqualNode)
@@ -248,8 +250,8 @@ class TreeWalkInterpreter:
     def visit(
         self, node: PlusExpressionNode, scope: Scope = None, Context: Context = None
     ):
-        left_value = self.visit(node.expression_1)
-        right_value = self.visit(node.expression_2)
+        left_value = self.visit(node.expression_1, scope, Context)
+        right_value = self.visit(node.expression_2, scope, Context)
         return left_value + right_value
 
     @visitor.when(SubsExpressionNode)
@@ -264,32 +266,32 @@ class TreeWalkInterpreter:
     def visit(
         self, node: DivExpressionNode, scope: Scope = None, Context: Context = None
     ):
-        left_value = self.visit(node.expression_1)
-        right_value = self.visit(node.expression_2)
+        left_value = self.visit(node.expression_1, scope, Context)
+        right_value = self.visit(node.expression_2, scope, Context)
         return left_value / right_value
 
     @visitor.when(MultExpressionNode)
     def visit(
         self, node: MultExpressionNode, scope: Scope = None, Context: Context = None
     ):
-        left_value = self.visit(node.expression_1)
-        right_value = self.visit(node.expression_2)
+        left_value = self.visit(node.expression_1, scope, Context)
+        right_value = self.visit(node.expression_2, scope, Context)
         return left_value * right_value
 
     @visitor.when(ModExpressionNode)
     def visit(
         self, node: ModExpressionNode, scope: Scope = None, Context: Context = None
     ):
-        left_value = self.visit(node.expression_1)
-        right_value = self.visit(node.expression_2)
+        left_value = self.visit(node.expression_1, scope, Context)
+        right_value = self.visit(node.expression_2, scope, Context)
         return left_value % right_value
 
     @visitor.when(PowExpressionNode)
     def visit(
         self, node: PowExpressionNode, scope: Scope = None, Context: Context = None
     ):
-        left_value = self.visit(node.expression_1)
-        right_value = self.visit(node.expression_2)
+        left_value = self.visit(node.expression_1, scope, Context)
+        right_value = self.visit(node.expression_2, scope, Context)
         return left_value**right_value
 
     @visitor.when(SqrtMathNode)
@@ -299,22 +301,22 @@ class TreeWalkInterpreter:
 
     @visitor.when(SinMathNode)
     def visit(self, node: SinMathNode, scope: Scope = None, Context: Context = None):
-        expression_value = self.visit(node.expression)
+        expression_value = self.visit(node.expression, scope, Context)
         return math.sin(expression_value)
 
     @visitor.when(CosMathNode)
     def visit(self, node: CosMathNode, scope: Scope = None, Context: Context = None):
-        expression_value = self.visit(node.expression)
+        expression_value = self.visit(node.expression, scope, Context)
         return math.cos(expression_value)
 
     @visitor.when(TanMathNode)
     def visit(self, node: TanMathNode, scope: Scope = None, Context: Context = None):
-        expression_value = self.visit(node.expression)
+        expression_value = self.visit(node.expression, scope, Context)
         return math.tan(expression_value)
 
     @visitor.when(ExpMathNode)
     def visit(self, node: ExpMathNode, scope: Scope = None, Context: Context = None):
-        expression_value = self.visit(node.expression)
+        expression_value = self.visit(node.expression, scope, Context)
         return math.exp(expression_value)
 
     @visitor.when(RandomCallNode)
@@ -323,16 +325,16 @@ class TreeWalkInterpreter:
 
     @visitor.when(LogCallNode)
     def visit(self, node: LogCallNode, scope: Scope = None, Context: Context = None):
-        base_value = self.visit(node.base)
-        expression_value = self.visit(node.expression)
+        base_value = self.visit(node.base, scope, Context)
+        expression_value = self.visit(node.expression, scope, Context)
         return math.log(expression_value, base_value)
 
     @visitor.when(StringConcatNode)
     def visit(
         self, node: StringConcatNode, scope: Scope = None, Context: Context = None
     ):
-        left_value = self.visit(node.left)
-        right_value = self.visit(node.right)
+        left_value = self.visit(node.left, scope, Context)
+        right_value = self.visit(node.right, scope, Context)
         return str(left_value) + str(right_value)
 
     @visitor.when(StringConcatWithSpaceNode)
@@ -342,6 +344,6 @@ class TreeWalkInterpreter:
         scope: Scope = None,
         Context: Context = None,
     ):
-        left_value = self.visit(node.left)
-        right_value = self.visit(node.right)
+        left_value = self.visit(node.left, scope, Context)
+        right_value = self.visit(node.right, scope, Context)
         return str(left_value) + " " + str(right_value)
