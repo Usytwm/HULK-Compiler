@@ -15,8 +15,6 @@ class TypeCollectorVisitor:
 
     @visitor.when(ProgramNode)
     def visit(self, node: ProgramNode):
-        # print('TypeCollector')
-        # self.context.types['test'] = Type('test')
         for statment in node.statments:
             self.visit(statment)
 
