@@ -360,10 +360,9 @@ type_definition %= (
 )
 par %= oPar + parameters + cPar, lambda h, s: s[2]
 par %= G.Epsilon, lambda h, s: []
-# self_ + Dot +
 attribute_definition %= (
-    kern_assignment + Semi + attribute_definition,
-    lambda h, s: s[3] + [s[1]],
+    self_ + Dot + kern_assignment + Semi + attribute_definition,
+    lambda h, s: s[5] + [s[3]],
 )
 attribute_definition %= G.Epsilon, lambda h, s: []
 
