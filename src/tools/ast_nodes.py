@@ -66,9 +66,11 @@ class KernAssigmentNode(Node):
         self.expression = expression
 
 
-class DestroyNode(KernAssigmentNode):
+class DestroyNode(Node):
     def __init__(self, id, expression) -> None:
-        super().__init__(id, expression)
+        super().__init__()
+        self.id = id
+        self.expression = expression
 
 
 # ? Podriamos instanciar la clase Type
@@ -375,6 +377,17 @@ class BoolCompNotEqualNode(BoolCompAritNode):
 class RandomFunctionCallNode(Node):
     def __init__(self) -> None:
         super().__init__()
+
+
+class SelfNode(Node):
+    def __init__(self) -> None:
+        super().__init__()
+
+
+class CollectionNode(Node):
+    def __init__(self, collection) -> None:
+        super().__init__()
+        self.collection = collection
 
 
 class LogFunctionCallNode(Node):

@@ -20,13 +20,29 @@ class TypeCheckerVisitor:
     @visitor.when(ProgramNode)
     def visit(self, node: ProgramNode):
         for statment in node.statments:
-            self.visit(statment, self.scope)
+            self.visit(
+                statment,
+                self.scope,
+            )
+
+    @visitor.when(CollectionNode)
+    def visit(self, node: CollectionNode, scope):
+        for element in node.collection:
+            self.visit(element, scope)
 
     @visitor.when(PrintStatmentNode)
     def visit(self, node: PrintStatmentNode, scope):
         self.visit(node.expression, scope)
 
         return self.context.get_type("void")
+
+    @visitor.when(LetInExpressionNode)
+    def visit(self, node: LetInExpressionNode, scope: Scope):
+        child = scope.create_child()
+        self.visit(node.assigments, child)
+        for statment in node.body[:-1]:
+            self.visit(statment, child)
+        return self.visit(node.body[-1], child)
 
     @visitor.when(DestroyNode)
     def visit(self, node: DestroyNode, scope: Scope):
@@ -44,7 +60,7 @@ class TypeCheckerVisitor:
         if scope.parent == None:
             try:
                 var: VariableInfo = self.scope.find_variable(node.id.id)
-                var.type = self.visit(node.expression, scope)
+                return self.visit(node.expression, scope)
             except:
                 self.errors.append(
                     SemanticError(f"La variable {node.id.id} ya esta definida.")
@@ -317,7 +333,7 @@ class TypeCheckerVisitor:
         if not type_1.conforms_to("number") or not type_2.conforms_to("number"):
             self.errors.append(
                 SemanticError(
-                    f"Solo se pueden emplear aritmeticos entre expresiones aritmeticas."
+                    f"Solo se pueden emplear operadores aritmeticos entre expresiones aritmeticas."
                 )
             )
             return self.context.get_type("any")

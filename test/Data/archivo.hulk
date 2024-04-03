@@ -1,6 +1,6 @@
 type Point {
-    x = 0;
-    y = 0;
+    self.x = 0;
+    self.y = 0;
 
     getX() => self.x;
     getY() => self.y;

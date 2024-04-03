@@ -35,6 +35,22 @@ class TreeWalkInterpreter:
         for statement in node.statments:
             self.visit(statement, self.scope, self.context)
 
+    @visitor.when(CollectionNode)
+    def visit(self, node: CollectionNode, scope: Scope = None, Context: Context = None):
+        for element in node.collection:
+            self.visit(element, scope, Context)
+
+    @visitor.when(LetInExpressionNode)
+    def visit(
+        self, node: LetInExpressionNode, scope: Scope = None, Context: Context = None
+    ):
+
+        self.visit(node.assigments, scope, Context)
+        ret = None
+        for statment in node.body:
+            ret = self.visit(statment, scope, Context)
+        return ret
+
     @visitor.when(KernAssigmentNode)
     def visit(
         self, node: KernAssigmentNode, scope: Scope = None, Context: Context = None
@@ -158,14 +174,12 @@ class TreeWalkInterpreter:
     def visit(
         self, node: ForStructureNode, scope: Scope = None, Context: Context = None
     ):
-        for init_assignment in node.init_assigments:
-            self.visit(init_assignment, scope, Context)
+        self.visit(node.init_assigments, scope, Context)
         ret = None
         while self.visit(node.condition, scope, Context):
             for statment in node.body:
                 ret = self.visit(statment, scope, Context)
-            for increment in node.increment_condition:
-                self.visit(increment, scope, Context)
+            self.visit(node.increment_condition)
         return ret
 
     @visitor.when(BoolIsTypeNode)

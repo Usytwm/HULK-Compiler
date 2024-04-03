@@ -41,3 +41,8 @@ class TypeCollectorVisitor:
         else:
             # print(node.id.id)
             self.errors.append(SemanticError(f"La variable {node.id.id} ya existe"))
+
+    @visitor.when(CollectionNode)
+    def visit(self, node: CollectionNode):
+        for element in node.collection:
+            self.visit(element)

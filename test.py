@@ -13,14 +13,14 @@ with open(pathhulk, "r", encoding="utf-8") as archivo:
 
 # define grammar
 grammar = gramm_Hulk_LR1()
-# text = """function cot(x: number) => 1 / tan(x);"""
+text = """let a = 42, b=10,c=7 in { print(a+z+c); print(a*b*c);};"""
 
 lexer = Lexer(
     build_regex(),
     EOF,
 )
 
-tokens = lexer(contenthulk)
+tokens = lexer(text)
 tokentypes = [token.token_type for token in tokens]
 print(tokentypes)
 parser = LR1Parser(grammar)
