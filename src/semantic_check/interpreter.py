@@ -186,7 +186,7 @@ class TreeWalkInterpreter:
         while self.visit(node.condition, scope, Context):
             for statment in node.body:
                 ret = self.visit(statment, scope, Context)
-            self.visit(node.increment_condition)
+                self.visit(node.increment_condition)
         return ret
 
     @visitor.when(BoolIsTypeNode)

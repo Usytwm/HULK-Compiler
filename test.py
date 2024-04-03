@@ -13,7 +13,10 @@ with open(pathhulk, "r", encoding="utf-8") as archivo:
 
 # define grammar
 grammar = gramm_Hulk_LR1()
-text = """print(sin(2 * PI) ^ 2 + cos(3 * PI / log(4, 64)));"""
+text = """for (let x=0; x < 10; x:= x + 1){
+    print(x);
+} 
+"""
 
 lexer = Lexer(
     build_regex(),
