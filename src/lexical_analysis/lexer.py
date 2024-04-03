@@ -9,7 +9,6 @@ from src.cmp.automata import (
     State,
 )
 from src.cmp.utils import Token
-from src.lexical_analysis.regex_patterns import build_regex
 
 
 class Lexer:
@@ -20,6 +19,9 @@ class Lexer:
         self.spaces = includesapces
 
     def _build_regexs(self, table):
+        """toma una tabla de tipos de tokens y sus correspondientes expresiones regulares,
+        y construye un autómata para cada uno. Cada estado final en el autómata se etiqueta
+        con su índice y tipo de token correspondiente."""
         regexs = []
         for n, (token_type, regex) in enumerate(table):
             # Your code here!!!
@@ -33,6 +35,9 @@ class Lexer:
         return regexs
 
     def _build_automaton(self):
+        """onstruye un autómata determinístico a partir de los autómatas en regexs.
+        Cada autómata se conecta al estado inicial a través de una transición epsilon.
+        """
         start = State("start")
         # Your code here!!!
         for state in self.regexs:
@@ -82,25 +87,3 @@ class Lexer:
 
     def __call__(self, text):
         return [Token(lex, ttype) for lex, ttype in self._tokenize(text)]
-
-
-# lexer = Lexer(
-#     build_regex(),
-#     "eof",
-# )
-# input_texts = [
-#     'print("Hello World");',
-#     '"escaped" tanke "de \\" guerra \\" \\" \\" que tal" quote "inside \\" husuh\\"" print "outside"',
-#     '"with multiple \\t\\n\\r escapes"',
-#     '"with escape \\n sequence"',
-#     '"simple"',
-#     '"with space"',
-#     '"with punctuation!"',
-# ]
-
-# for text in input_texts:
-#     print(f'\n>>> Tokenizando: "{text}"')
-#     tokens = lexer(text)
-#     print(tokens)
-#     # assert [t.token_type for t in tokens] == ["string", "eof"]
-#     # assert [t.lex for t in tokens] == [text, "$"]

@@ -72,9 +72,7 @@ class TypeCheckerVisitor:
                 SemanticError(f"La variable {node.id.id} ya esta definida.")
             )
         else:
-            scope.define_variable(
-                node.id.id, self.visit(node.expression, scope)
-            )  # * Aqui en el 2do parametro de la funcion se infiere el tipo de la expresion que se le va a asignar a la variable
+            scope.define_variable(node.id.id, self.visit(node.expression, scope))
 
         return self.context.get_type("any")
 
@@ -191,20 +189,9 @@ class TypeCheckerVisitor:
     @visitor.when(ForStructureNode)
     def visit(self, node: ForStructureNode, scope: Scope):
         inner_scope: Scope = scope.create_child()
-        for assin in node.init_assigments:
-            id, expr = assin.id.id, assin.expression
+        self.visit(node.init_assigments, inner_scope)
 
-            if scope.is_defined(id):
-                self.errors.append(
-                    SemanticError(f"La variable {id} ya esta definida en este scope.")
-                )
-            else:
-                inner_scope.define_variable(
-                    id, self.visit(expr, inner_scope)
-                )  # * Aqui en el 2do parametro de la funcion se infiere el tipo de la expresion que se le va a asignar a la variable
-
-        for increment_assigment in node.increment_condition:
-            self.visit(increment_assigment, inner_scope)
+        self.visit(node.increment_condition, inner_scope)
 
         for statment in node.body[:-1]:
             self.visit(statment, inner_scope)
@@ -225,7 +212,7 @@ class TypeCheckerVisitor:
         for att in node.attributes:
             inner_scope.define_variable(
                 att.id.id, self.visit(att.expression, temp_scope)
-            )  # * Aqui en el 2do parametro de la funcion se infiere el tipo de la expresion que se le va a asignar a la variable
+            )
 
         for method in node.methods:
             self.visit(method, inner_scope)
@@ -298,13 +285,13 @@ class TypeCheckerVisitor:
                         )
                     )
                     correct = False
-            # Si coinciden los tipos de los parametros entonces se retorna el tipo de retorno de la funcion en otro caso se retorna el tipo object
+            # Si coinciden los tipos de los parametros entonces se retorna el tipo de retorno de la funcion en otro caso se retorna el tipo any
             return method.return_type if correct else self.context.get_type("any")
         except:
-            # Si el id suministrado no es ni un atributo ni un metodo entonces se lanza un error y se retorna el tipo object
+            # Si el id suministrado no es ni un atributo ni un metodo entonces se lanza un error y se retorna el tipo any
             self.errors.append(
                 SemanticError(
-                    f"El objeto no tiene el metod llamado {node.object_property_to_acces}."
+                    f"El objeto no tiene el metodo llamado {node.object_property_to_acces}."
                 )
             )
             return self.context.get_type("any")
@@ -366,17 +353,6 @@ class TypeCheckerVisitor:
     def visit(self, node: RandomFunctionCallNode, scope: Scope):
         return self.context.get_type("number")
 
-    @visitor.when(LetInNode)
-    def visit(self, node: LetInNode, scope: Scope):
-        inner_scope = scope.create_child()
-        for assign in node.assigments:
-            self.visit(assign, inner_scope)
-
-        for statment in node.body[:-1]:
-            self.visit(node.body, inner_scope)
-
-        return self.visit(node.body[-1], inner_scope)
-
     @visitor.when(FunctionCallNode)
     def visit(self, node: FunctionCallNode, scope: Scope):
         try:
@@ -389,7 +365,7 @@ class TypeCheckerVisitor:
                 self.errors.append(
                     f"La funcion {node.id.id} requiere otra cantidad de parametros pero {len(node.args)} fueron suministrados"
                 )
-                return args[0].return_type
+            return args[0].return_type
         except:
             self.errors.append(f"La funcion {node.id.id} no esta definida.")
             return self.context.get_type("any")
@@ -466,7 +442,7 @@ class TypeCheckerVisitor:
     @visitor.when(InheritanceNode)
     def visit(self, node: InheritanceNode, scope):
         try:
-            return self.context.get_type(node.type)
+            return self.context.get_type(node.type.id)
         except:
             self.errors.append(SemanticError(f"El tipo {node.type} no esta definifo"))
             return self.context.get_type("any")
@@ -477,7 +453,8 @@ class TypeCheckerVisitor:
             string = str(node.value)
             return self.context.get_type("string")
         except:
-            return self.context.get_type("string")
+            self.errors.append(SemanticError(f"El elemento no es un string"))
+            return self.context.get_type("any")
 
     @visitor.when(BoolIsTypeNode)
     def visit(self, node: BoolIsTypeNode, scope: Scope):

@@ -141,20 +141,27 @@ class TreeWalkInterpreter:
         self, node: IfStructureNode, scope: Scope = None, Context: Context = None
     ):
         condition = self.visit(node.condition)
+        ret = None
         if condition:
-            self.visit(node.body)
+            for statments in node.body:
+                ret = self.visit(statments, scope, Context)
         elif node._elif:
             for elif_node in node._elif:
                 elif_condition = self.visit(elif_node.condition)
                 if elif_condition:
-                    self.visit(elif_node.body)
+                    for statments in elif_node.body:
+                        ret = self.visit(elif_node.statments)
+
                     break
             else:
                 if node._else:
-                    self.visit(node._else.body)
+                    for statments in node._else.body:
+                        ret = self.visit(statments, scope, Context)
         else:
             if node._else:
                 self.visit(node._else.body)
+
+        return ret
 
     @visitor.when(WhileStructureNode)
     def visit(
