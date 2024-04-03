@@ -133,8 +133,9 @@ create_statement %= function_definition, lambda h, s: s[1]
 create_statement %= destroy_collection + Semi, lambda h, s: s[1]
 
 expr_statement %= print_statement, lambda h, s: s[1]
-expr_statement %= assignment + In + expr_statement, lambda h, s: LetInExpressionNode(
-    s[1], s[3]
+expr_statement %= (
+    assignment + In + non_create_statement,
+    lambda h, s: LetInExpressionNode(s[1], [s[3]]),
 )
 expr_statement %= expression, lambda h, s: s[1]
 expr_statement %= oBrace + statement_list + cBrace, lambda h, s: s[2]
@@ -156,7 +157,7 @@ control_structure %= for_structure, lambda h, s: s[1]
 if_structure %= (
     If
     + oPar
-    + condition
+    + expression
     + cPar
     + oBrace
     + statement_list
@@ -167,7 +168,7 @@ if_structure %= (
 )
 
 contElif %= (
-    Elif + oPar + condition + cPar + oBrace + statement_list + cBrace + contElif,
+    Elif + oPar + expression + cPar + oBrace + statement_list + cBrace + contElif,
     lambda h, s: [ElifStructureNode(s[3], s[6])] + s[8],
 )
 contElif %= G.Epsilon, lambda h, s: []
@@ -178,7 +179,7 @@ contElse %= Else + oBrace + statement_list + cBrace, lambda h, s: ElseStructureN
 contElse %= G.Epsilon, lambda h, s: ElseStructureNode([])
 
 while_structure %= (
-    While + oPar + condition + cPar + oBrace + statement_list + cBrace,
+    While + oPar + expression + cPar + oBrace + statement_list + cBrace,
     lambda h, s: WhileStructureNode(s[3], s[6]),
 )
 # for_structure %= For + oPar + assignment + Semi + condition + Semi + destructive_assignment + cPar + oBrace + statement_list + cBrace , lambda h, s:  ForStructureNode(s[3], s[5], s[7], s[10])
@@ -191,7 +192,7 @@ for_structure %= (
     + oPar
     + assignment
     + Semi
-    + condition
+    + expression
     + Semi
     + destroy_collection
     + cPar
@@ -336,7 +337,7 @@ math_call %= tan + oPar + ExprNum + cPar, lambda h, s: TanMathNode(s[3])
 math_call %= exp + oPar + ExprNum + cPar, lambda h, s: ExpMathNode(s[3])
 math_call %= (
     log + oPar + ExprNum + Comma + ExprNum + cPar,
-    lambda h, s: LogFunctionCallNode(s[3], [s[5]]),
+    lambda h, s: LogFunctionCallNode(s[3], s[5]),
 )
 math_call %= rand + oPar + cPar, lambda h, s: RandomFunctionCallNode(
     IdentifierNode("random"), []

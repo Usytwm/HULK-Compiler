@@ -316,27 +316,27 @@ class TreeWalkInterpreter:
 
     @visitor.when(SqrtMathNode)
     def visit(self, node: SqrtMathNode, scope: Scope = None, Context: Context = None):
-        expression_value = self.visit(node.expression)
+        expression_value = self.visit(node.node)
         return math.sqrt(expression_value)
 
     @visitor.when(SinMathNode)
     def visit(self, node: SinMathNode, scope: Scope = None, Context: Context = None):
-        expression_value = self.visit(node.expression, scope, Context)
+        expression_value = self.visit(node.node, scope, Context)
         return math.sin(expression_value)
 
     @visitor.when(CosMathNode)
     def visit(self, node: CosMathNode, scope: Scope = None, Context: Context = None):
-        expression_value = self.visit(node.expression, scope, Context)
+        expression_value = self.visit(node.node, scope, Context)
         return math.cos(expression_value)
 
     @visitor.when(TanMathNode)
     def visit(self, node: TanMathNode, scope: Scope = None, Context: Context = None):
-        expression_value = self.visit(node.expression, scope, Context)
+        expression_value = self.visit(node.node, scope, Context)
         return math.tan(expression_value)
 
     @visitor.when(ExpMathNode)
     def visit(self, node: ExpMathNode, scope: Scope = None, Context: Context = None):
-        expression_value = self.visit(node.expression, scope, Context)
+        expression_value = self.visit(node.node, scope, Context)
         return math.exp(expression_value)
 
     @visitor.when(RandomFunctionCallNode)

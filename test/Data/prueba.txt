@@ -126,21 +126,3 @@ let x = new Superman() in
 let x = 42 in print(x);
 function fib(n) => if (n == 0 or n == 1) 1 else fib(n-1) + fib(n-2);
 function fact(x) => let f = 1 in for (i in range(1, x+1)) f := f * i;
-protocol Hashable {
-    hash(): Number;
-}
-protocol Equatable extends Hashable {
-    equals(other: Object): Boolean;
-}
-protocol Iterable {
-    next() : Boolean;
-    current() : Object;
-}
-type Range(min:Number, max:Number) {
-    min = min;
-    max = max;
-    current = min - 1;
-
-    next(): Boolean => (self.current := self.current + 1) < max;
-    current(): Number => self.current;
-}
