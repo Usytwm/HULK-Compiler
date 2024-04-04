@@ -1,25 +1,69 @@
+function operate(x: number, y: number) {
+    print(x + y);
+    print(x - y);
+    print(x * y);
+    print(x / y);
+}
+
+print(operate(5,5));
+function operate(x: string, y: string, z:string) {
+    print((x @ y)@z);
+}
+
+print(operate("6","7","9"));
+print("Hello World");
+
+
+let x = 0;
+while(x < 10){
+    print(x);
+    x:= x + 1;
+}
+type Persona(first:string, last:string) {
+    self.first=first;
+    self.last=last;
+    get_full():string => first@@last;
+    calculaEdad(edad:number) {
+        if(edad<18 and edad > 10 )
+        {
+            print("Menor de edad");
+            
+        }
+        elif(edad > 15)
+        {
+            print("No es nada");
+        }
+        elif(edad < 10)
+        {
+            print("es menor que 10");
+           
+        }
+        else
+        {
+            print("estoy en el else");
+            
+        }
+    }
+}
+let w = 42 in print(w);
 let msg = "Hello World" in print(msg);
 let number = 42, text = "The meaning of life is" in
     print(text @ number);
-let number = 42 in
-    let text = "The meaning of life is" in
-        print(text @ number);
-let number = 42 in (
-    let text = "The meaning of life is" in (
-            print(text @ number)
-        )
-    );
-let a = 6, b = a * 7 in print(b);
-let a = 6 in
-    let b = a * 7 in
-        print(b);
-let a = 5, b = 10, c = 20 in {
-    print(a+b);
-    print(b*c);
-    print(c/a);
-};
 
-let a = 20 in {
-    let a = 42 in print(a);
-    print(a);
-};
+
+
+
+
+type A {
+    self.a = 8;
+    get(x: number): number => a + x;
+}
+
+type B inherits A {
+    self.b = 10;
+    get1(x:number): number => get(b) + b;
+}
+
+let j = (new B()).get1(10);
+
+print(j);
