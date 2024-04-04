@@ -41,9 +41,12 @@ class TypeCheckerVisitor:
     def visit(self, node: LetInExpressionNode, scope: Scope):
         child = scope.create_child()
         self.visit(node.assigments, child)
-        for statment in node.body[:-1]:
-            self.visit(statment, child)
-        return self.visit(node.body[-1], child)
+        if isinstance(node.body, List):
+            for statment in node.body[:-1]:
+                self.visit(statment, child)
+            return self.visit(node.body[-1], child)
+        else:
+            return self.visit(node.body, child)
 
     @visitor.when(DestroyNode)
     def visit(self, node: DestroyNode, scope: Scope):
@@ -269,7 +272,7 @@ class TypeCheckerVisitor:
             else:
                 for i in range(len(node.args)):
                     if not self.visit(node.args[i], scope).conforms_to(
-                        class_type.attributes[i].type
+                        class_type.args[i].type.name
                     ):
                         self.errors.append(
                             SemanticError(

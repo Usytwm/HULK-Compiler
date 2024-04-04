@@ -1,5 +1,6 @@
 import math
 import random
+import re
 from src.tools.ast_nodes import *
 from src.cmp.semantic import *
 import src.cmp.visitor as visitor
@@ -18,10 +19,22 @@ class ScopeInterprete(Scope):
         return self.variable.get(name, None)
 
 
+class ContextInterprete(Context):
+    def __init__(self):
+        super().__init__()
+        self.node = {}
+
+    def create_node(self, name, node):
+        self.node[name] = [node]
+
+    def get_node(self, name):
+        return self.node.get(name, None)
+
+
 class TreeWalkInterpreter:
 
     def __init__(self):
-        self.context = Context()
+        self.context = ContextInterprete()
         self.scope = ScopeInterprete()
         self.errors = []
         self.currentType: Type = None
@@ -47,9 +60,12 @@ class TreeWalkInterpreter:
 
         self.visit(node.assigments, scope, Context)
         ret = None
-        for statment in node.body:
-            ret = self.visit(statment, scope, Context)
-        return ret
+        if isinstance(node.body, List):
+            for statment in node.body:
+                ret = self.visit(statment, scope, Context)
+            return ret
+        else:
+            return self.visit(node.body, scope, Context)
 
     @visitor.when(KernAssigmentNode)
     def visit(
@@ -57,6 +73,15 @@ class TreeWalkInterpreter:
     ):
         scope.asign_variable(node.id.id, self.visit(node.expression, scope))
         return scope.get_variable(node.id.id)
+
+    @visitor.when(KernInstanceCreationNode)
+    def visit(
+        self,
+        node: KernInstanceCreationNode,
+        scope: Scope = None,
+        Context: Context = None,
+    ):
+        return node
 
     @visitor.when(DestroyNode)
     def visit(self, node: DestroyNode, scope: Scope = None, Context: Context = None):
@@ -71,13 +96,21 @@ class TreeWalkInterpreter:
         print(value)
         return value
 
-    @visitor.when(MemberAccessNode)
-    def visit(
-        self, node: MemberAccessNode, scope: Scope = None, Context: Context = None
-    ):
+    # @visitor.when(MemberAccessNode)
+    # def visit(
+    #     self, node: MemberAccessNode, scope: Scope = None, Context: Context = None
+    # ):
 
-        value = self.visit(node.expression, scope, Context)
-        return value[node.id]
+    #     type = self.context.get_node(node.type.id)
+
+    #     for i, param in enumerate(function.parameters):
+    #         scope.asign_variable(
+    #             list(param.keys())[0].id, self.visit(node.args[i], scope, Context)
+    #         )
+    #     ret = None
+    #     for statment in function.body:
+    #         ret = self.visit(statment, scope, Context)
+    #     return ret
 
     @visitor.when(NumberNode)
     def visit(self, node: NumberNode, scope: Scope = None, Context: Context = None):
@@ -85,17 +118,25 @@ class TreeWalkInterpreter:
 
     @visitor.when(StringNode)
     def visit(self, node: StringNode, scope: Scope = None, Context: Context = None):
-        return node.value
+        value = re.sub(r'^"|"$', "", node.value)
+        return value
 
     @visitor.when(TypeDefinitionNode)
     def visit(
         self, node: TypeDefinitionNode, scope: Scope = None, context: Context = None
     ):
-        context = Context()
-        self.currentType = context.create_type(node.id)
+
+        self.currentType = self.context.create_type(node.id)
         child = scope.create_child()
         for method in node.methods:
             self.visit(method, child, context)
+
+        self.context.create_node(node.id, node)
+        if node.inheritance:
+            try:
+                node.methods.extends(self.context.get_node(node.inheritance).methods)
+            except:
+                node.methods.extend([])
         self.currentType = None
 
     @visitor.when(FunctionDefinitionNode)
@@ -104,14 +145,14 @@ class TreeWalkInterpreter:
     ):
         if self.currentType:
             try:
-                scope.node[self.currentType.name].append(node)
+                self.scope.node[self.currentType.name].append(node)
             except:
-                scope.node[self.currentType.name] = [node]
+                self.scope.node[self.currentType.name] = [node]
         else:
             try:
-                scope.node[None].append(node)
+                self.scope.node[None].append(node)
             except:
-                scope.node[None] = [node]
+                self.scope.node[None] = [node]
         for param in node.parameters:
             arg, type_att = list(param.keys())[0].id, list(param.values())[0]
             scope.define_variable(arg, type_att)
