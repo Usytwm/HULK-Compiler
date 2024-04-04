@@ -39,8 +39,8 @@ class TypeCollectorVisitor:
     def visit(self, node: FunctionDefinitionNode):
         if not node.id.id in self.scope.functions:
             self.scope.functions[node.id.id] = []
-        else:
-            self.errors.append(SystemError(f"El metodo {node.id.id} ya existe"))
+        # else:
+        #     self.errors.append(SystemError(f"El metodo {node.id.id} ya existe"))
 
     @visitor.when(CollectionNode)
     def visit(self, node: CollectionNode):

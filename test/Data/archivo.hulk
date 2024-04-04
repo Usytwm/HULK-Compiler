@@ -5,5 +5,9 @@ function operate(x: number, y: number) {
     print(x / y);
 }
 
+function operate(x: string, y: string, z:string) {
+    print((x @ y)@z);
+}
 
-print(operate(5,5));
+
+print("Hello World");
