@@ -24,9 +24,8 @@ type Persona(first:string, last:string) {
 
 
 type Estudiante(first, last) inherits Persona(first,last) {
-    
     get_promedio(n1,n2){
-        let return in print(
+        let return = 5 in print(
             for(let semestre = 1; semestre <= 4; semestre := semestre +1)
             {
                 (n1+n2)*semestre;
@@ -35,5 +34,3 @@ type Estudiante(first, last) inherits Persona(first,last) {
     }
 }
 
-let leo = new Estudiante("Leo","Ramirez");
-let result in leo.get_promedio(10,8);

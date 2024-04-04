@@ -396,6 +396,10 @@ method_definition %= (
 method_definition %= G.Epsilon, lambda h, s: []
 
 inheritance %= Inherits + identifier, lambda h, s: InheritanceNode(IdentifierNode(s[2]))
+inheritance %= (
+    Inherits + identifier + oPar + arguments + cPar,
+    lambda h, s: InheritanceNode(IdentifierNode(s[2])),
+)
 inheritance %= G.Epsilon, lambda h, s: InheritanceNode(IdentifierNode("object"))
 
 EOF = G.EOF
