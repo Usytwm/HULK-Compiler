@@ -21,6 +21,14 @@ class TypeCollectorVisitor:
     @visitor.when(TypeDefinitionNode)
     def visit(self, node: TypeDefinitionNode):
         try:
+            InheritanceType = self.context.get_type(node.inheritance.type.id)
+        except:
+            self.errors.append(
+                SemanticError(
+                    f"No es posible heredar de {node.inheritance.type.id} porque no esta definido"
+                )
+            )
+        try:
             self.context.create_type(node.id.id)
         except:
             self.errors.append(
@@ -33,14 +41,6 @@ class TypeCollectorVisitor:
             self.scope.functions[node.id.id] = []
         else:
             self.errors.append(SystemError(f"El metodo {node.id.id} ya existe"))
-
-    @visitor.when(KernAssigmentNode)
-    def visit(self, node: KernAssigmentNode):
-        if not self.scope.is_defined(node.id.id):
-            self.scope.define_variable(node.id.id, self.context.get_type("object"))
-        else:
-            # print(node.id.id)
-            self.errors.append(SemanticError(f"La variable {node.id.id} ya existe"))
 
     @visitor.when(CollectionNode)
     def visit(self, node: CollectionNode):

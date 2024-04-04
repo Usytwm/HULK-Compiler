@@ -1,10 +1,18 @@
-from src.cmp.pycompiler import Grammar
+from symtable import Symbol
+from src.cmp.pycompiler import (
+    AttributeProduction,
+    Grammar,
+    NonTerminal,
+    Sentence,
+    Terminal,
+)
 from src.cmp.pycompiler import Item
 from src.cmp.utils import ContainerSet
 from src.tools.parsing import compute_local_first, compute_firsts
 from src.cmp.automata import multiline_formatter, State
 import sys
 import os
+import json
 
 current_dir = os.getcwd()
 sys.path.insert(0, current_dir)

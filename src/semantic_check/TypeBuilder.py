@@ -24,6 +24,13 @@ class TypeBuilderVisitor:
         self.currentType: Type = self.context.get_type(node.id.id)
         try:
             inheritance = self.context.get_type(node.inheritance.type.id)
+            if inheritance.conforms_to(self.currentType.name):
+                self.errors.append(
+                    SemanticError(
+                        f"Dependencias circulares. {inheritance.node.name} hereda de {self.currentType.name}"
+                    )
+                )
+                inheritance = self.context.get_type("object")
         except:
             self.errors.append(
                 SemanticError(
@@ -32,7 +39,7 @@ class TypeBuilderVisitor:
             )
             inheritance = self.context.get_type("object")
 
-        self.currentType.inhertance = inheritance
+        self.currentType.inheritance = inheritance
 
         for arg in node.parameters:
             name: IdentifierNode = list(arg.items())[0][0]
@@ -68,13 +75,6 @@ class TypeBuilderVisitor:
             except:
                 self.errors.append(
                     SemanticError(f"El atributo {node.id.id} ya esta definido")
-                )
-        else:
-            try:
-                self.scope.define_variable(node.id.id, self.context.get_type("object"))
-            except:
-                self.errors.append(
-                    SemanticError(f"La variable {node.id.id} ya esta definida")
                 )
 
     @visitor.when(FunctionDefinitionNode)

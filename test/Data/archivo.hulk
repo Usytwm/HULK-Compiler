@@ -1,4 +1,25 @@
-for (let x=0; x < 10; x:= x + 1){
-    print(x);
-} 
+type Point {
+    self.x = 0;
+    self.y = 0;
 
+    getX():number => x;
+    getY():number => y;
+
+    setX(x:number) => x := x;
+    setY(y:number) => y := y;
+}
+
+type Persona(first:string, last:string) {
+    get_full() => first@@last;
+    calculaEdad(edad:number) {
+        if(edad<18)
+        {
+            print("Menor de edad");
+        }
+        elif(true)
+        {
+            print("No es nada");
+        }
+        
+    }
+}

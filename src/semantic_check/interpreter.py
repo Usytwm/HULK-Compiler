@@ -71,6 +71,14 @@ class TreeWalkInterpreter:
         print(value)
         return value
 
+    @visitor.when(MemberAccessNode)
+    def visit(
+        self, node: MemberAccessNode, scope: Scope = None, Context: Context = None
+    ):
+
+        value = self.visit(node.expression, scope, Context)
+        return value[node.id]
+
     @visitor.when(NumberNode)
     def visit(self, node: NumberNode, scope: Scope = None, Context: Context = None):
         return float(node.value)
@@ -186,7 +194,7 @@ class TreeWalkInterpreter:
         while self.visit(node.condition, scope, Context):
             for statment in node.body:
                 ret = self.visit(statment, scope, Context)
-                self.visit(node.increment_condition)
+                self.visit(node.increment_condition, scope, Context)
         return ret
 
     @visitor.when(BoolIsTypeNode)
