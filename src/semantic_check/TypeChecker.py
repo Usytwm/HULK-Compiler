@@ -212,7 +212,7 @@ class TypeCheckerVisitor:
         temp_scope: Scope = scope.create_child()
         for param in node.parameters:
             arg, type_att = list(param.items())[0][0], list(param.items())[0][1]
-            temp_scope.define_variable(arg, type_att)
+            temp_scope.define_variable(arg.id, type_att)
 
         inner_scope = self.scope.create_child()
         for att in node.attributes:

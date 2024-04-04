@@ -1,3 +1,25 @@
+type Persona (first:string, last:string) {
+
+    get_full() => first@@last;
+    calculaEdad(edad:number) {
+        if(edad<18)
+        {
+            print("Menor de edad");
+        }
+        elif(edad >18 and edad < 21)
+        {
+            print("No es nada");
+        }
+        else
+        {
+            let residuo = 0;
+            while(edad%10 > 0){
+                residuo := edad%10;
+            }
+            print("Tu residuo es"@residuo);
+        }
+    }
+}
 42;
 print(42);
 print((((1 + 2) ^ 3) * 4) / 5);

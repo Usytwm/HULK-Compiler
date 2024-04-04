@@ -10,7 +10,9 @@ type Point {
 }
 
 type Persona(first:string, last:string) {
-    get_full() => first@@last;
+    self.first=first;
+    self.last=last;
+    get_full():string => first@@last;
     calculaEdad(edad:number) {
         if(edad<18)
         {

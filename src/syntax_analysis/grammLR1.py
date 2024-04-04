@@ -246,9 +246,10 @@ function_definition %= (
     lambda h, s: FunctionDefinitionNode(IdentifierNode(s[2]), s[6], s[4], [s[8]]),
 )
 
-parameters %= identifier + type_annotation + Comma + parameters, lambda h, s: [
-    {IdentifierNode(s[1]): s[2]}
-] + [s[4]]
+parameters %= (
+    identifier + type_annotation + Comma + parameters,
+    lambda h, s: [{IdentifierNode(s[1]): s[2]}] + s[4],
+)
 # * Puse el diccionario que se creaba solo entre corchetes para formar la lisat
 parameters %= identifier + type_annotation, lambda h, s: [{IdentifierNode(s[1]): s[2]}]
 parameters %= G.Epsilon, lambda h, s: []
@@ -324,7 +325,6 @@ member_access %= (
     factor + Dot + identifier + oPar + arguments + cPar,
     lambda h, s: MemberAccessNode(s[1], IdentifierNode(s[3]), s[5]),
 )
-# member_access %= factor + Dot + identifier , lambda h, s: MemberAccesNode(s[1], s[3], [])  #Todo member access Los parametros son privados de la clase #! NAOMI ARREGLA ESTO EN EL CHECKEO SEMANTICO ❤️
 kern_instance_creation %= (
     New + identifier + oPar + arguments + cPar,
     lambda h, s: KernInstanceCreationNode(IdentifierNode(s[2]), s[4]),
