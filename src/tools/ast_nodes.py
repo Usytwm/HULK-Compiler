@@ -107,6 +107,9 @@ class IfStructureNode(Node):
         self._elif = _elif
         self._else = _else
 
+    def len(self):
+        return len(self.body)
+
 
 class ElifStructureNode(Node):
     def __init__(self, condition, body) -> None:
@@ -114,11 +117,17 @@ class ElifStructureNode(Node):
         self.condition = condition
         self.body = body
 
+    def __len__(self):
+        return len(self.body)
+
 
 class ElseStructureNode(Node):
     def __init__(self, body) -> None:
         super().__init__()
         self.body = body
+
+    def __len__(self):
+        return len(self.body)
 
 
 class WhileStructureNode(Node):

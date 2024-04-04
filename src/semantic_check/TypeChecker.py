@@ -33,9 +33,9 @@ class TypeCheckerVisitor:
 
     @visitor.when(PrintStatmentNode)
     def visit(self, node: PrintStatmentNode, scope):
-        self.visit(node.expression, scope)
+        ret_type = self.visit(node.expression, scope)
 
-        return self.context.get_type("void")
+        return self.context.get_type(ret_type.name)
 
     @visitor.when(LetInExpressionNode)
     def visit(self, node: LetInExpressionNode, scope: Scope):
@@ -130,32 +130,40 @@ class TypeCheckerVisitor:
                 SemanticError(f"La condicion del if debe ser de tipo bool")
             )
 
-        inner_scope = scope.create_child()
-        for statment in node.body[:-1]:
-            self.visit(statment, inner_scope)
-        type = self.visit(node.body[-1], inner_scope)
+        type = self.context.get_type("object")
 
-        for _elif in node._elif:
-            type_1 = self.visit(_elif, scope)
-            if not type_1.conforms_to(type):
+        inner_scope = scope.create_child()
+        aux_type = self.context.get_type("object")
+        if len(node._elif) != 0:
+            for statment in node.body:
+                aux_type = self.visit(statment, inner_scope)
+            type = aux_type
+
+        inner_scope = scope.create_child()
+        if len(node._elif) != 0:
+            aux_type = self.context.get_type("object")
+            for item in node._elif:
+                aux_type = self.visit(item, inner_scope)
+                if not aux_type.conforms_to(type.name):
+                    self.errors.append(
+                        SemanticError(
+                            f"Los distintos bloques del if no retornan el mismo tipo."
+                        )
+                    )
+                    type = self.context.get_type("any")
+                    break
+
+        inner_scope = scope.create_child()
+        if len(node._else) != 0:
+            if not self.visit(node._else, inner_scope).conforms_to(type.name):
                 self.errors.append(
                     SemanticError(
                         f"Los distintos bloques del if no retornan el mismo tipo."
                     )
                 )
-                return self.context.get_type("any")
-            type = type_1
+                type = self.context.get_type("any")
 
-        type_1 = self.visit(node._else, scope)
-        if not type_1.conforms_to(type):
-            self.errors.append(
-                SemanticError(
-                    f"Los distintos bloques del if no retornan el mismo tipo."
-                )
-            )
-            return self.context.get_type("any")
-
-        return type_1
+        return type
 
     @visitor.when(ElifStructureNode)
     def visit(self, node: ElifStructureNode, scope: Scope):
@@ -211,7 +219,14 @@ class TypeCheckerVisitor:
 
         temp_scope: Scope = scope.create_child()
         for param in node.parameters:
-            arg, type_att = list(param.items())[0][0], list(param.items())[0][1]
+            try:
+                type = self.context.get_type(list(param.items())[0][1].type)
+            except:
+                self.errors.append(SemanticError(""))
+                type = self.context.get_type("object")
+
+            arg, type_att = list(param.items())[0][0], type
+
             temp_scope.define_variable(arg.id, type_att)
 
         inner_scope = self.scope.create_child()
@@ -319,9 +334,7 @@ class TypeCheckerVisitor:
         type_1: Type = self.visit(node.left, scope)
         type_2: Type = self.visit(node.right, scope)
 
-        if not type_1.conforms_to(
-            self.context.get_type("bool")
-        ) or not type_2.conforms_to(self.context.get_type("bool")):
+        if not type_1.conforms_to("bool") or not type_2.conforms_to("bool"):
             self.errors.append(
                 SemanticError(
                     f"Solo se pueden emplear operadores booleanos entre expresiones booleanas."
@@ -537,6 +550,6 @@ class TypeCheckerVisitor:
     def visit(self, node: BooleanNode, scope):
         try:
             boolean = bool(node.value)
-            return self.context.create_type("bool")
+            return self.context.get_type("bool")
         except:
             return self.context.get_type("any")
