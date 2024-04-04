@@ -6,16 +6,15 @@ Program = G.NonTerminal("Program", True)
 (
     statement_list,
     statement,
-    condition,
+    expression,
     expression,
     term,
     factor,
     function_call,
     arguments,
     parameters,
-    par,
 ) = G.NonTerminals(
-    "statement_list statement condition expression term factor function_call arguments parameters par"
+    "statement_list statement expression expression term factor function_call arguments parameters"
 )
 (
     type_definition,
@@ -112,6 +111,7 @@ identifier, number, string, Elif, Type, Inherits, New, In, arroba, arroba2, PI =
 ) = G.Terminals("' \"")
 sqrt, sin, cos, tan, exp, log, rand = G.Terminals("sqrt sin cos tan exp log rand")
 collection, destroy_collection = G.NonTerminals("collection destroy_collection")
+
 Program %= statement_list, lambda h, s: ProgramNode(s[1])
 statement_list %= statement + statement_list, lambda h, s: [s[1]] + s[2]
 statement_list %= (
@@ -124,21 +124,23 @@ statement %= non_create_statement, lambda h, s: s[1]
 statement %= create_statement, lambda h, s: s[1]
 
 non_create_statement %= control_structure, lambda h, s: s[1]
+
 non_create_statement %= expr_statement + Semi, lambda h, s: s[1]
 # non_create_statement %= expr_statementWithoutSemi, lambda h, s: s[1]
 
 create_statement %= assignment + Semi, lambda h, s: s[1]
 create_statement %= type_definition, lambda h, s: s[1]
-create_statement %= function_definition, lambda h, s: s[1]
 create_statement %= destroy_collection + Semi, lambda h, s: s[1]
+create_statement %= function_definition, lambda h, s: s[1]
 
 expr_statement %= print_statement, lambda h, s: s[1]
-expr_statement %= (
-    assignment + In + non_create_statement,
-    lambda h, s: LetInExpressionNode(s[1], [s[3]]),
+# TODO aqui hay que ver como se maneja la cosa de las listas
+#! Pendiente
+expr_statement %= assignment + In + expr_statement, lambda h, s: LetInExpressionNode(
+    s[1], s[3]
 )
 expr_statement %= expression, lambda h, s: s[1]
-expr_statement %= oBrace + statement_list + cBrace, lambda h, s: s[2]
+expr_statement %= oBrace + statement_list + cBrace, lambda h, s: CollectionNode(s[2])
 # expr_statement %= expr_statementWithoutSemi, lambda h, s: s[1]
 # expr_statementWithoutSemi %= assignment + In + oBrace + statement_list + cBrace, lambda h, s: LetInNode(s[1], s[3])
 
@@ -167,6 +169,9 @@ if_structure %= (
     lambda h, s: IfStructureNode(s[3], s[6], s[8], s[9]),
 )
 
+# TODO Ponerle que sea un coleccion
+# contElif_2 = G.NonTerminal('contElif_2')
+# contElif %= contElif_2, lambda h,s: CollectionNode(s[1])
 contElif %= (
     Elif + oPar + expression + cPar + oBrace + statement_list + cBrace + contElif,
     lambda h, s: [ElifStructureNode(s[3], s[6])] + s[8],
@@ -182,15 +187,16 @@ while_structure %= (
     While + oPar + expression + cPar + oBrace + statement_list + cBrace,
     lambda h, s: WhileStructureNode(s[3], s[6]),
 )
-# for_structure %= For + oPar + assignment + Semi + condition + Semi + destructive_assignment + cPar + oBrace + statement_list + cBrace , lambda h, s:  ForStructureNode(s[3], s[5], s[7], s[10])
-# for_assignment = G.NonTerminal("for_assignment")
-# for_assignment %= G.Epsilon, lambda h, s: []
-# for_assignment %= assignment, lambda h, s: s[1]
-# for_assignment %= destructive_assignment, lambda h, s: s[1]
+# for_structure %= For + oPar + assignment + Semi + expression + Semi + destructive_assignment + cPar + oBrace + statement_list + cBrace , lambda h, s:  ForStructureNode(s[3], s[5], s[7], s[10])
+for_assignment = G.NonTerminal("for_assignment")
+for_assignment %= G.Epsilon, lambda h, s: CollectionNode([])
+for_assignment %= assignment, lambda h, s: s[1]
+
+for_assignment %= destroy_collection, lambda h, s: s[1]
 for_structure %= (
     For
     + oPar
-    + assignment
+    + for_assignment
     + Semi
     + expression
     + Semi
@@ -202,6 +208,8 @@ for_structure %= (
     lambda h, s: ForStructureNode(s[3], s[5], s[7], s[10]),
 )
 
+# TODO Cambie la atributacion y le puse que creara un nodo collection para saber luego en los checkeos que hay que iterar en ese tipo de nodos
+# assignment %= Let + multi_assignment, lambda h, s: s[2]
 assignment %= Let + multi_assignment, lambda h, s: CollectionNode(s[2])
 multi_assignment %= (
     kern_assignment + Comma + multi_assignment,
@@ -212,6 +220,7 @@ kern_assignment %= identifier + Equal + expr_statement, lambda h, s: KernAssigme
     IdentifierNode(s[1]), s[3]
 )
 # kern_assignment %= identifier + Equal + expr_statementWithoutSemi, lambda h, s: KernAssigmentNode(s[1],s[3])
+
 
 destroy_collection %= destructive_assignment, lambda h, s: CollectionNode(s[1])
 destructive_assignment %= (
@@ -234,6 +243,7 @@ function_definition %= (
     + cBrace,
     lambda h, s: FunctionDefinitionNode(IdentifierNode(s[2]), s[6], s[4], s[8]),
 )
+# TODO aqui puse el statment entre corchetes en la creacion del nodo porque de lo contrario no lo puedo iterar
 function_definition %= (
     Function
     + identifier
@@ -246,6 +256,9 @@ function_definition %= (
     lambda h, s: FunctionDefinitionNode(IdentifierNode(s[2]), s[6], s[4], [s[8]]),
 )
 
+# TODO Cambie expression por identifier porque el parametro de una funcion tiene que ser obligatoria mente un variable
+# parameters %= expression + type_annotation + Comma + parameters, lambda h, s: [{s[1]:s[2]}] + [s[4]]
+# parameters %= expression + type_annotation, lambda h, s: {s[1]:s[2]}
 parameters %= (
     identifier + type_annotation + Comma + parameters,
     lambda h, s: [{IdentifierNode(s[1]): s[2]}] + s[4],
@@ -305,6 +318,7 @@ term %= term + Mod + factorPow, lambda h, s: ModExpressionNode(s[1], s[3])
 factorPow %= factor, lambda h, s: s[1]
 factorPow %= factor + Pow + factorPow, lambda h, s: PowExpressionNode(s[1], s[3])
 factorPow %= factor + PowStar + factorPow, lambda h, s: PowExpressionNode(s[1], s[3])
+
 factor %= oPar + expr_statement + cPar, lambda h, s: s[2]
 factor %= number, lambda h, s: NumberNode(s[1])
 factor %= string, lambda h, s: StringNode(s[1])
@@ -314,7 +328,12 @@ factor %= identifier + oPar + arguments + cPar, lambda h, s: FunctionCallNode(
     IdentifierNode(s[1]), s[3]
 )
 factor %= identifier, lambda h, s: IdentifierNode(s[1])
-factor %= self_ + Dot + identifier, lambda h, s: SelfNode(IdentifierNode(s[3]))
+factor %= control_structure, lambda h, s: s[1]
+factor %= oPar + assignment + cPar, lambda h, s: s[2]
+factor %= oPar + destroy_collection + cPar, lambda h, s: s[2]
+# TODO Annadi el self a los factores
+# factor %= _self + Dot + identifier, lambda h, s : SelfNode(IdentifierNode(s[3]))
+
 # factor %= function_call, lambda h, s: s[1]
 # factor %= assignment + In + expr_statement, lambda h, s: LetInExpressionNode(s[1], s[3])
 # factor %= assignment + In + oBrace + statement_list + cBrace, lambda h, s: LetInNode(s[1], s[3])
@@ -325,6 +344,7 @@ member_access %= (
     factor + Dot + identifier + oPar + arguments + cPar,
     lambda h, s: MemberAccessNode(s[1], IdentifierNode(s[3]), s[5]),
 )
+# member_access %= factor + Dot + identifier , lambda h, s: MemberAccesNode(s[1], s[3], [])  #Todo member access Los parametros son privados de la clase #! NAOMI ARREGLA ESTO EN EL CHECKEO SEMANTICO ❤️
 kern_instance_creation %= (
     New + identifier + oPar + arguments + cPar,
     lambda h, s: KernInstanceCreationNode(IdentifierNode(s[2]), s[4]),
@@ -335,13 +355,12 @@ math_call %= cos + oPar + ExprNum + cPar, lambda h, s: CosMathNode(s[3])
 math_call %= sin + oPar + ExprNum + cPar, lambda h, s: SinMathNode(s[3])
 math_call %= tan + oPar + ExprNum + cPar, lambda h, s: TanMathNode(s[3])
 math_call %= exp + oPar + ExprNum + cPar, lambda h, s: ExpMathNode(s[3])
+# TODO Cambie la forma en la que se creaba el nodo
 math_call %= (
     log + oPar + ExprNum + Comma + ExprNum + cPar,
     lambda h, s: LogFunctionCallNode(s[3], s[5]),
 )
-math_call %= rand + oPar + cPar, lambda h, s: RandomFunctionCallNode(
-    IdentifierNode("random"), []
-)
+math_call %= rand + oPar + cPar, lambda h, s: RandomFunctionCallNode()
 math_call %= PI, lambda h, s: PINode()
 
 arguments %= expr_statement + Comma + arguments, lambda h, s: [s[1]] + s[3]
@@ -349,19 +368,33 @@ arguments %= expr_statement, lambda h, s: [s[1]]
 arguments %= G.Epsilon, lambda h, s: []
 
 # Estructuras adicionales para tipos
+# type_definition %= Type + identifier + oPar + parameters + cPar + inheritance + oBrace + attribute_definition + method_definition + cBrace, lambda h, s: TypeDefinitionNode(IdentifierNode(s[2]),s[4],s[6], s[8],s[9])
 type_definition %= (
     Type
     + identifier
-    + par
+    + oPar
+    + parameters
+    + cPar
     + inheritance
     + oBrace
     + attribute_definition
     + method_definition
     + cBrace,
-    lambda h, s: TypeDefinitionNode(IdentifierNode(s[2]), s[3], s[4], s[6], s[7]),
+    lambda h, s: TypeDefinitionNode(IdentifierNode(s[2]), s[4], s[6], s[8], s[9]),
 )
-par %= oPar + parameters + cPar, lambda h, s: s[2]
-par %= G.Epsilon, lambda h, s: []
+type_definition %= (
+    Type
+    + identifier
+    + inheritance
+    + oBrace
+    + attribute_definition
+    + method_definition
+    + cBrace,
+    lambda h, s: TypeDefinitionNode(IdentifierNode(s[2]), s[4], s[6], s[8], s[9]),
+)
+
+#! El siguiente comentario paso a ser lo que era antes
+# TODO Quite el self porque cuando se inicializan los atributos no se pone self
 attribute_definition %= (
     self_ + Dot + kern_assignment + Semi + attribute_definition,
     lambda h, s: s[5] + [s[3]],

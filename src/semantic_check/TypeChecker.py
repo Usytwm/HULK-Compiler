@@ -387,7 +387,15 @@ class TypeCheckerVisitor:
     @visitor.when(FunctionCallNode)
     def visit(self, node: FunctionCallNode, scope: Scope):
         try:
-            method = self.current_type.get_method(node.id.id)
+            if self.current_type:
+                method = self.current_type.get_method(node.id.id)
+            else:
+                method = list(
+                    filter(
+                        lambda x: len(x.param_names) == len(node.args),
+                        self.scope.functions[node.id.id],
+                    )
+                )[0]
             if method:
                 # En caso de ser un metodo se verifica si la cantidad de parametros suministrados es correcta
                 if method and len(node.args) != len(method.param_names):
