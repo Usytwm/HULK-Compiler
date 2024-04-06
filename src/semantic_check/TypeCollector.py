@@ -20,14 +20,14 @@ class TypeCollectorVisitor:
 
     @visitor.when(TypeDefinitionNode)
     def visit(self, node: TypeDefinitionNode):
-        try:
-            InheritanceType = self.context.get_type(node.inheritance.type.id)
-        except:
-            self.errors.append(
-                SemanticError(
-                    f"No es posible heredar de {node.inheritance.type.id} porque no esta definido"
-                )
-            )
+        #        try:
+        #            InheritanceType = self.context.get_type(node.inheritance.type.id)
+        #        except:
+        #            self.errors.append(
+        #                SemanticError(
+        #                    f"No es posible heredar de {node.inheritance.type.id} porque no esta definido"
+        #                )
+        #            )
         try:
             self.context.create_type(node.id.id)
         except:

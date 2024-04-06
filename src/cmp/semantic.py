@@ -29,6 +29,7 @@ class Method:
         self.param_names = param_names
         self.param_types = params_types
         self.return_type = return_type
+        self.base = None
 
     def __str__(self):
         params = ", ".join(
@@ -42,6 +43,9 @@ class Method:
             and other.return_type == self.return_type
             and other.param_types == self.param_types
         )
+
+    def define_base(self, method_base):
+        self.base = method_base
 
 
 class Type:

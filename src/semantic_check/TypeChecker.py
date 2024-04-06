@@ -12,6 +12,7 @@ class TypeCheckerVisitor:
         self.scope: Scope = scope
         self.default_functions = default_functions
         self.current_type: Type = None
+        self.current_function: Method = None
 
     @visitor.on("node")
     def visit(self, node, scope):
@@ -108,14 +109,28 @@ class TypeCheckerVisitor:
         inner_scope: Scope = scope.create_child()
         for i in range(len(method.param_names)):
             inner_scope.define_variable(method.param_names[i], method.param_types[i])
+
+        self.current_function = method
         for statment in node.body[:-1]:
             self.visit(statment, inner_scope)
 
-        return (
+        last_statement_result = self.visit(node.body[-1], inner_scope)
+        result = (
             method.return_type
-            if self.visit(node.body[-1], inner_scope).conforms_to(method.return_type)
+            if last_statement_result.conforms_to(method.return_type)
             else self.context.get_type("any")
         )
+
+        # Restablece self.current_function a None
+        self.current_function = None
+
+        return result
+
+    #        return (
+    #            method.return_type
+    #            if self.visit(node.body[-1], inner_scope).conforms_to(method.return_type)
+    #            else self.context.get_type("any")
+    #        )
 
     @visitor.when(IfStructureNode)
     def visit(self, node: IfStructureNode, scope: Scope):
@@ -240,6 +255,14 @@ class TypeCheckerVisitor:
             for attribute in inheritance_type.attributes:
                 inner_scope.define_variable(attribute.name, attribute.type)
             for method in inheritance_type.methods:
+                base_method = [
+                    base
+                    for base in self.current_type.methods
+                    if method.name == base.name
+                ]
+                if len(base_method) > 0:
+                    method.define_base(base_method[0])
+                    self.current_type.methods.remove(base_method[0])
                 self.current_type.methods.append(method)
 
         for method in node.methods:
@@ -383,7 +406,19 @@ class TypeCheckerVisitor:
     def visit(self, node: FunctionCallNode, scope: Scope):
         try:
             if self.current_type:
-                method = self.current_type.get_method(node.id.id)
+                if self.current_function:
+                    if node.id.id == "base":
+                        method = self.current_function.base
+                        if not method:
+                            self.errors.append(
+                                SemanticError(f"El metodo base no esta definido")
+                            )
+                            return self.context.get_type("any")
+                    else:
+                        method = self.current_type.get_method(node.id.id)
+                else:
+                    method = self.current_type.get_method(node.id.id)
+
             else:
                 method = list(
                     filter(
@@ -404,6 +439,7 @@ class TypeCheckerVisitor:
 
                 # Si la cantidad de parametros es correcta se verifica si los tipos de los parametros suministrados son correctos
                 # Luego por cada parametro suministrado se verifica si el tipo del parametro suministrado es igual al tipo del parametro de la funcion
+                correct = True
                 for i in range(len(node.args)):
                     correct = True
                     arg_type = self.visit(node.args[i], scope)
@@ -424,11 +460,16 @@ class TypeCheckerVisitor:
                 ]
                 if len(args) == 0:
                     self.errors.append(
-                        f"La funcion {node.id.id} requiere otra cantidad de parametros pero {len(node.args)} fueron suministrados"
+                        SemanticError(
+                            f"La funcion {node.id.id} requiere otra cantidad de parametros pero {len(node.args)} fueron suministrados"
+                        )
                     )
                     return args[0].return_type
         except:
-            self.errors.append(f"La funcion {node.id.id} no esta definida.")
+            #!aki memsta dando error
+            self.errors.append(
+                SemanticError(f"La funcion {node.id.id} no esta definida.")
+            )
             return self.context.get_type("any")
 
         # !KI

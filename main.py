@@ -19,12 +19,11 @@ class TestHulk(unittest.TestCase):
         build_regex(),
         EOF,
     )
+    tokens = lexer(content)
     parser = LR1Parser(grammar)
     checker = SemanticCheck()
 
     # --------------------------------Análisis Léxico--------------------------------
-
-    tokens = lexer(content)
 
     tokentypes = [token.token_type for token in tokens]
 

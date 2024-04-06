@@ -81,6 +81,8 @@ class Lexer:
 
             if self.spaces and final[0][1] == "space":
                 continue
+            if final[0][1] == "comment":
+                continue
             yield lex, final[0][1]
 
         yield "$", self.eof

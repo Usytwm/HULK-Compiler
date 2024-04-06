@@ -49,12 +49,16 @@ class TypeBuilderVisitor:
                 type = self.context.get_type(type.type)
             except:
                 type = self.context.get_type("object")
-                self.errors.append(f"El tipo del argumento {name.id} no esta definido.")
+                self.errors.append(
+                    SemanticError(f"El tipo del argumento {name.id} no esta definido.")
+                )
 
             try:
                 self.currentType.define_argument(name.id, type)
             except:
-                self.errors.append(f"Existenten dos argumentos con el nombre {name.id}")
+                self.errors.append(
+                    SemanticError(f"Existenten dos argumentos con el nombre {name.id})")
+                )
 
         for attrDef in node.attributes:
             self.visit(attrDef)
@@ -84,7 +88,9 @@ class TypeBuilderVisitor:
             return_type = self.context.get_type(type_annotation.type)
         except:
             self.errors.append(
-                f"El tipo de retorno {node.type_annotation.type} no esta definido"
+                SemanticError(
+                    f"El tipo de retorno {node.type_annotation.type} no esta definido"
+                )
             )
             return_type = self.context.get_type("object")
 
@@ -113,12 +119,16 @@ class TypeBuilderVisitor:
                 )
             except:
                 self.errors.append(
-                    f"La funcion {node.id.id} ya existe en el contexto de {self.currentType.name}."
+                    SemanticError(
+                        f"La funcion {node.id.id} ya existe en el contexto de {self.currentType.name}."
+                    )
                 )
         else:
             if self.scope.method_is_define(node.id.id, len(arg_names)):
                 self.errors.append(
-                    f"La funcion {node.id.id} ya existe en este scope con {len(arg_names)} cantidad de parametros"
+                    SemanticError(
+                        f"La funcion {node.id.id} ya existe en este scope con {len(arg_names)} cantidad de parametros"
+                    )
                 )
             else:
                 method = Method(node.id.id, arg_names, arg_types, return_type)

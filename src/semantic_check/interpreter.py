@@ -58,8 +58,10 @@ class TreeWalkInterpreter:
 
     @visitor.when(CollectionNode)
     def visit(self, node: CollectionNode, scope: Scope = None, Context: Context = None):
+        ret = None
         for element in node.collection:
-            self.visit(element, scope, Context)
+            ret = self.visit(element, scope, Context)
+        return ret
 
     @visitor.when(LetInExpressionNode)
     def visit(

@@ -6,6 +6,7 @@ def build_regex():
     return [
         (number, "(\-|\+)?(0|[1-9][0-9]*)(\.[0-9]+)?([eE][\+\-]?[0-9]+)?"),
         ("space", "( )*|\n|\t"),
+        ("comment", "//([^(\n|$)])*"),
         (Equal, "="),
         (Destroy, ":="),
         (Colon, ":"),
