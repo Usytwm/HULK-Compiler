@@ -61,15 +61,7 @@ class TypeCheckerVisitor:
 
     @visitor.when(KernAssigmentNode)
     def visit(self, node: KernAssigmentNode, scope: Scope):
-        # if scope.parent == None:
-        #     try:
-        #         var: VariableInfo = self.scope.find_variable(node.id.id)
-        #         return self.visit(node.expression, scope)
-        #     except:
-        #         self.errors.append(
-        #             SemanticError(f"La variable {node.id.id} ya esta definida.")
-        #         )
-        #     return self.context.get_type("any")
+        #! Aki tengo que agregar que si la asignacion no es de un tipo del que hereda la variable de error
         try:
             ret = self.context.create_type(self.visit(node.expression, scope))
         except:
@@ -137,10 +129,10 @@ class TypeCheckerVisitor:
 
         inner_scope = scope.create_child()
         aux_type = self.context.get_type("object")
-        if len(node._elif) != 0:
-            for statment in node.body:
-                aux_type = self.visit(statment, inner_scope)
-            type = aux_type
+        # if len(node._elif) != 0:
+        for statment in node.body:
+            aux_type = self.visit(statment, inner_scope)
+        type = aux_type
 
         inner_scope = scope.create_child()
         if len(node._elif) != 0:

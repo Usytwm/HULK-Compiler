@@ -22,7 +22,6 @@ class SemanticCheck:
             "cos",
             "sqrt",
             "exp",
-            "tan",
             "rand",
             "log",
             "print",

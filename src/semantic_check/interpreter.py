@@ -1,3 +1,4 @@
+from copy import deepcopy
 import math
 import random
 import re
@@ -17,6 +18,13 @@ class ScopeInterprete(Scope):
 
     def get_variable(self, name):
         return self.variable.get(name, None)
+
+    def create_child(self):
+        child = ScopeInterprete(self)
+        child.node = self.node
+        child.variable = deepcopy(self.variable)
+        self.children.append(child)
+        return child
 
 
 class ContextInterprete(Context):
@@ -97,6 +105,7 @@ class TreeWalkInterpreter:
         return value
 
     # @visitor.when(MemberAccessNode)
+    # !a,i tengo que arreglarlo ;ara que devuelva lo correcto, eso implica arreglar cosas en la definicion de un tipo y en la asignacion
     # def visit(
     #     self, node: MemberAccessNode, scope: Scope = None, Context: Context = None
     # ):
@@ -189,26 +198,31 @@ class TreeWalkInterpreter:
     def visit(
         self, node: IfStructureNode, scope: Scope = None, Context: Context = None
     ):
-        condition = self.visit(node.condition)
+        condition = self.visit(node.condition, scope, Context)
         ret = None
         if condition:
+            inner_scope = scope.create_child()
             for statments in node.body:
-                ret = self.visit(statments, scope, Context)
+                ret = self.visit(statments, inner_scope, Context)
         elif node._elif:
             for elif_node in node._elif:
-                elif_condition = self.visit(elif_node.condition)
+                elif_condition = self.visit(elif_node.condition, scope, Context)
+                inner_scope = scope.create_child()
                 if elif_condition:
                     for statments in elif_node.body:
-                        ret = self.visit(elif_node.statments)
+                        ret = self.visit(statments, inner_scope, Context)
 
                     break
             else:
                 if node._else:
+                    inner_scope = scope.create_child()
                     for statments in node._else.body:
-                        ret = self.visit(statments, scope, Context)
+                        ret = self.visit(statments, inner_scope, Context)
         else:
             if node._else:
-                self.visit(node._else.body)
+                inner_scope = scope.create_child()
+                for statments in node._else.body:
+                    ret = self.visit(statments, inner_scope, Context)
 
         return ret
 
@@ -319,69 +333,97 @@ class TreeWalkInterpreter:
     def visit(
         self, node: PlusExpressionNode, scope: Scope = None, Context: Context = None
     ):
-        left_value = self.visit(node.expression_1, scope, Context)
-        right_value = self.visit(node.expression_2, scope, Context)
+        iner_scope_left = scope.create_child()
+        left_value = self.visit(node.expression_1, iner_scope_left, Context)
+        iner_scope_right = scope.create_child()
+        right_value = self.visit(node.expression_2, iner_scope_right, Context)
         return left_value + right_value
 
     @visitor.when(SubsExpressionNode)
     def visit(
         self, node: SubsExpressionNode, scope: Scope = None, Context: Context = None
     ):
-        left_value = self.visit(node.expression_1, scope, Context)
-        right_value = self.visit(node.expression_2, scope, Context)
+        iner_scope_left = scope.create_child()
+        left_value = self.visit(node.expression_1, iner_scope_left, Context)
+        iner_scope_right = scope.create_child()
+        right_value = self.visit(node.expression_2, iner_scope_right, Context)
         return left_value - right_value
 
     @visitor.when(DivExpressionNode)
     def visit(
         self, node: DivExpressionNode, scope: Scope = None, Context: Context = None
     ):
-        left_value = self.visit(node.expression_1, scope, Context)
-        right_value = self.visit(node.expression_2, scope, Context)
+        iner_scope_left = scope.create_child()
+        left_value = self.visit(node.expression_1, iner_scope_left, Context)
+        iner_scope_right = scope.create_child()
+        right_value = self.visit(node.expression_2, iner_scope_right, Context)
         return left_value / right_value
 
     @visitor.when(MultExpressionNode)
     def visit(
         self, node: MultExpressionNode, scope: Scope = None, Context: Context = None
     ):
-        left_value = self.visit(node.expression_1, scope, Context)
-        right_value = self.visit(node.expression_2, scope, Context)
+        iner_scope_left = scope.create_child()
+        left_value = self.visit(node.expression_1, iner_scope_left, Context)
+        iner_scope_right = scope.create_child()
+        right_value = self.visit(node.expression_2, iner_scope_right, Context)
         return left_value * right_value
 
     @visitor.when(ModExpressionNode)
     def visit(
         self, node: ModExpressionNode, scope: Scope = None, Context: Context = None
     ):
-        left_value = self.visit(node.expression_1, scope, Context)
-        right_value = self.visit(node.expression_2, scope, Context)
+        iner_scope_left = scope.create_child()
+        left_value = self.visit(node.expression_1, iner_scope_left, Context)
+        iner_scope_right = scope.create_child()
+        right_value = self.visit(node.expression_2, iner_scope_right, Context)
         return left_value % right_value
 
     @visitor.when(PowExpressionNode)
     def visit(
         self, node: PowExpressionNode, scope: Scope = None, Context: Context = None
     ):
-        left_value = self.visit(node.expression_1, scope, Context)
-        right_value = self.visit(node.expression_2, scope, Context)
+        iner_scope_left = scope.create_child()
+        left_value = self.visit(node.expression_1, iner_scope_left, Context)
+        iner_scope_right = scope.create_child()
+        right_value = self.visit(node.expression_2, iner_scope_right, Context)
         return left_value**right_value
 
     @visitor.when(SqrtMathNode)
     def visit(self, node: SqrtMathNode, scope: Scope = None, Context: Context = None):
-        expression_value = self.visit(node.node)
+        iner_scope = scope.create_child()
+        expression_value = self.visit(node.node, iner_scope, Context)
         return math.sqrt(expression_value)
 
     @visitor.when(SinMathNode)
     def visit(self, node: SinMathNode, scope: Scope = None, Context: Context = None):
         expression_value = self.visit(node.node, scope, Context)
-        return math.sin(expression_value)
+        try:
+            return math.sin(expression_value)
+        except:
+            raise Exception(
+                f"La función requerida sin no está definida en {expression_value}."
+            )
 
     @visitor.when(CosMathNode)
     def visit(self, node: CosMathNode, scope: Scope = None, Context: Context = None):
         expression_value = self.visit(node.node, scope, Context)
-        return math.cos(expression_value)
+        try:
+            return math.cos(expression_value)
+        except:
+            raise Exception(
+                f"La función requerida cos no está definida en {expression_value}."
+            )
 
     @visitor.when(TanMathNode)
     def visit(self, node: TanMathNode, scope: Scope = None, Context: Context = None):
         expression_value = self.visit(node.node, scope, Context)
-        return math.tan(expression_value)
+        try:
+            return math.tan(expression_value)
+        except:
+            raise Exception(
+                f"La función requerida tan no está definida en {expression_value}."
+            )
 
     @visitor.when(ExpMathNode)
     def visit(self, node: ExpMathNode, scope: Scope = None, Context: Context = None):
@@ -400,7 +442,18 @@ class TreeWalkInterpreter:
     ):
         base_value = self.visit(node.base, scope, Context)
         expression_value = self.visit(node.expression, scope, Context)
-        return math.log(expression_value, base_value)
+        try:
+            return math.log(expression_value, base_value)
+        except ValueError:
+            # Lanzar un error personalizado indicando que el logaritmo no está definido para los valores dados
+            raise Exception(
+                "El logaritmo no está definido para los valores proporcionados."
+            )
+        except Exception as e:
+            # Captura cualquier otro tipo de excepción y lanza un error personalizado
+            raise Exception(
+                f"Ocurrió un error inesperado al intentar calcular el logaritmo: {e}."
+            )
 
     @visitor.when(StringConcatNode)
     def visit(

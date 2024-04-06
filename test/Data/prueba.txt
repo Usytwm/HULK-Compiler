@@ -148,3 +148,104 @@ let x = new Superman() in
 let x = 42 in print(x);
 function fib(n) => if (n == 0 or n == 1) 1 else fib(n-1) + fib(n-2);
 function fact(x) => let f = 1 in for (i in range(1, x+1)) f := f * i;
+
+npara la exposicion
+type Persona(first:string, last:string) {
+    self.first = first;
+    self.last = last;
+    get_full() => first@@last;
+    calculaEdad(edad:number) {
+        if(edad<18)
+        {
+            print("Menor de edad");
+        }
+        elif(edad >18 and edad < 21)
+        {
+            print("No es nada");
+        }
+        else
+        {
+            let residuo = 0;
+            while(edad%10 > 0){
+                residuo := edad%10;
+            }
+            print("Tu residuo es"@residuo);
+        }
+    }
+}
+
+
+type Estudiante(first:string, last:string) inherits Persona(first,last) {
+    get_promedio(n1:number,n2:number){
+        for(let semestre = 1; semestre <= 4; semestre := semestre + 1)
+        {
+            (n1 + n2)*semestre;
+        }
+    }
+}
+
+let a = new Estudiante("5","9");
+print(a.calculaEdad(17));
+
+function operate(x: number, y: number) {
+    print(x + y);
+    print(x - y);
+    print(x * y);
+    print(x / y);
+}
+
+function operate(x: string, y: string, z:string) {
+    print(x @@ y @@ z);
+}
+
+
+print(operate("6","7","9"));
+
+let io = 10 in while (io >= 0) {
+    print(io);
+    io := io - 1;
+};
+type A  {
+    self.a = 8;
+    get(x: number): number => a + x;
+}
+
+type B inherits A {
+    self.b = 10;
+    get1(x:number): number => get(b) + b;
+}
+
+function mayor(edad:number){
+    if(edad<18)
+    {
+        "Menor de edad";
+    }
+    elif(edad > 18 and edad < 21)
+    {
+        "No es nada";
+    }
+    else
+    {
+        let residuo = 0;
+        while(edad % 10 > 10){
+            residuo := edad % 10;
+            edad := residuo;
+        }
+        print("Tu residuo es"@@ residuo);
+    }
+}
+
+print(mayor(22));
+
+
+-----------lo que mando juan pablo-----------
+function tan(x: number): number => sin(x) / cos(x);
+function cot(x: number): number => 1 / tan(x);
+function operate(x :number, y: number) {
+    print(x + y);
+    print(x - y);
+    print(x * y);
+    print(x / y);
+}
+function fib(n: number):number => if (n == 0 or n == 1) {1;} else {fib(n - 1) + fib(n - 2);}
+print(fib(9));

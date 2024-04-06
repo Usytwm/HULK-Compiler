@@ -34,7 +34,7 @@ def build_regex():
         (sqrt, "sqrt"),
         (sin, "sin"),
         (cos, "cos"),
-        (tan, "tan"),
+        # (tan, "tan"),
         (exp, "exp"),
         (log, "log"),
         (rand, "rand"),
