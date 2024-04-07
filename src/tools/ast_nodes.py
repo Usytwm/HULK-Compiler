@@ -55,9 +55,14 @@ class ProgramNode(Node):
 
 class IdentifierNode(Node):
     def __init__(self, tokenID: Token) -> None:
-        super().__init__(tokenID)
-        self.id = tokenID.lex
-        print(f"Identifier: {id}")
+        token = None
+        if tokenID != "object":
+            self.id = tokenID.lex
+            # self.location = type.location
+            token = tokenID
+        else:
+            self.id = tokenID
+        super().__init__(token)
 
 
 class SelfNode(Node):
@@ -304,13 +309,13 @@ class NumberNode(Node):
 
 class PINode(NumberNode):
     def __init__(self, tokenPI: Token = None) -> None:
-        super().__init__(math.pi, tokenPI)
+        super().__init__(tokenPI)
 
 
 # ------------------------------------------------------------Math-Operations-----------------------------------------------------------------------------------#
 class MathOperationNode(UnaryNode):
     def __init__(self, expression, tokenOp: Token = None) -> None:
-        super().__init__(expression)
+        super().__init__(expression, tokenOp)
         self.location = tokenOp.location
 
 
@@ -358,7 +363,7 @@ class LetInExpressionNode(Node):
 class FunctionCallNode(Node):
     def __init__(self, tokenFunc: Token, args) -> None:
         super().__init__(tokenFunc)
-        self.id = tokenFunc.lex
+        self.id = IdentifierNode(tokenFunc)
         self.args = args
 
 

@@ -19,6 +19,7 @@ class TestHulk(unittest.TestCase):
         build_regex(),
         EOF,
     )
+
     parser = LR1Parser(grammar)
     checker = SemanticCheck()
 

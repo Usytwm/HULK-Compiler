@@ -334,7 +334,7 @@ factor %= string, lambda h, s: StringNode(s[1])  # Ya
 factor %= False_, lambda h, s: BooleanNode(s[1])  # Ya
 factor %= True_, lambda h, s: BooleanNode(s[1])  # Ya
 factor %= identifier + oPar + arguments + cPar, lambda h, s: FunctionCallNode(
-    IdentifierNode(s[3], s[1])
+    s[1], s[3]
 )  # Ya
 factor %= identifier, lambda h, s: IdentifierNode(s[1])  # Ya
 factor %= control_structure, lambda h, s: s[1]
@@ -353,7 +353,7 @@ member_access %= (
     lambda h, s: MemberAccessNode(s[1], IdentifierNode(s[3]), s[5]),
 )  # Ya
 self_access %= self_ + Dot + identifier, lambda h, s: SelfNode(
-    IdentifierNode(s[3])
+    IdentifierNode(s[3]), s[1]
 )  # Ya
 kern_instance_creation %= (
     New + identifier + oPar + arguments + cPar,
