@@ -1,9 +1,9 @@
 # from AST import *
 
 from typing import List
-from cmp import visitor
-from cmp.semantic import Context, SemanticError
-from tools.ast_nodes import *
+from src.cmp import visitor
+from src.cmp.semantic import Context, SemanticError
+from src.tools.ast_nodes import *
 
 
 class TypeCollectorVisitor:

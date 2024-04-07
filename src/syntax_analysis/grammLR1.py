@@ -255,11 +255,8 @@ function_definition %= (
 parameters %= (
     identifier + type_annotation + Comma + parameters,
     lambda h, s: [{IdentifierNode(s[1]): s[2]}] + s[4],
-)  # Ya
-# * Puse el diccionario que se creaba solo entre corchetes para formar la lisat
-parameters %= identifier + type_annotation, lambda h, s: [
-    {IdentifierNode(s[1]): s[2]}
-]  # Ya
+)
+parameters %= identifier + type_annotation, lambda h, s: [{IdentifierNode(s[1]): s[2]}]
 parameters %= G.Epsilon, lambda h, s: []
 
 type_annotation %= Colon + identifier, lambda h, s: TypeNode(s[2])  # Ya

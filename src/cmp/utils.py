@@ -129,11 +129,10 @@ class Token:
         Token's type.
     """
 
-    def __init__(self, lex, token_type, row=None, col=None):
+    def __init__(self, lex, token_type, row=0, column=0):
         self.lex = lex
         self.token_type = token_type
-        self.row = row
-        self.col = col
+        self.location = row, column
 
     def __eq__(self, other):
         if not isinstance(other, Token):
@@ -141,7 +140,7 @@ class Token:
         return self.lex == other.lex and self.token_type == other.token_type
 
     def __str__(self):
-        return f"{self.token_type}: {self.lex} ({self.row},{self.col})"
+        return f"{self.token_type}: {self.lex} => ({self.location})"
 
     def __repr__(self):
         return str(self)

@@ -1,7 +1,7 @@
 from typing import List
 import math
 
-from cmp.utils import Token
+from src.cmp.utils import Token
 
 
 class Node:
@@ -105,9 +105,11 @@ class DestroyNode(Node):
 class TypeNode(Node):
     def __init__(self, type: Token) -> None:
         super().__init__()
-        self.type = type.lex
         if type != "object":
+            self.type = type.lex
             self.location = type.location
+        else:
+            self.type = type
 
 
 class FunctionDefinitionNode(Node):
