@@ -13,6 +13,7 @@ from src.cmp.automata import multiline_formatter, State
 import sys
 import os
 import json
+from dill import dump, load
 
 current_dir = os.getcwd()
 sys.path.insert(0, current_dir)
@@ -23,12 +24,20 @@ class ShiftReduceParser:
     REDUCE = "REDUCE"
     OK = "OK"
 
-    def __init__(self, G, verbose=False):
+    def __init__(self, G, verbose=False, rebuild=False):
         self.G = G
         self.verbose = verbose
-        self.action = {}
-        self.goto = {}
-        self._build_parsing_table()
+        if rebuild:
+            self.action = {}
+            self.goto = {}
+            self._build_parsing_table()
+            with open("table.joblib", "wb") as f:
+                dump((self.action, self.goto), f)
+        else:
+            with open("table.joblib", "rb") as f:
+                action, goto = load(f)
+                self.action = action
+                self.goto = goto
 
     def _build_parsing_table(self):
         raise NotImplementedError()
@@ -47,7 +56,8 @@ class ShiftReduceParser:
 
             # Detect error
             try:
-                action, tag = self.action[state, lookahead]
+                action, tag = self.findActionAndTag(state, lookahead)
+                # action, tag = self.action[state, lookahead]
                 # Shift case
                 if action == ShiftReduceParser.SHIFT:
                     operations.append(ShiftReduceParser.SHIFT)
@@ -70,6 +80,11 @@ class ShiftReduceParser:
                     assert False, "Must be something wrong!"
             except KeyError:
                 raise Exception("Aborting parsing, item is not viable.")
+
+    def findActionAndTag(self, state, lookahead):
+        for key, value in self.action.items():
+            if state == key[0] and lookahead.Name == key[1].Name:
+                return value
 
     def __iter__(self):
         # El iterador es el objeto mismo en este caso.

@@ -20,7 +20,7 @@ class TestHulk(unittest.TestCase):
         EOF,
     )
 
-    parser = LR1Parser(grammar)
+    parser = LR1Parser(grammar, rebuild=True)
     checker = SemanticCheck()
 
     # --------------------------------Análisis Léxico--------------------------------

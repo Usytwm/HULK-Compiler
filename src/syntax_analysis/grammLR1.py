@@ -440,7 +440,7 @@ inheritance %= Inherits + identifier, lambda h, s: InheritanceNode(
     IdentifierNode(s[2]), []
 )
 inheritance %= (
-    Inherits + identifier + oPar + parameters + cPar,
+    Inherits + identifier + oPar + arguments + cPar,
     lambda h, s: InheritanceNode(IdentifierNode(s[2]), s[4]),
 )
 inheritance %= G.Epsilon, lambda h, s: InheritanceNode(IdentifierNode("object"), [])
