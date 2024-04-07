@@ -38,12 +38,12 @@ type Point(x:number,y:number) {
     setY(y:number) => self.y := y;
 }
 type PolarPoint(phi:number, rho:number) inherits Point(rho , phi) {
-    rho() => sqrt(getX() ^ 2 + getY() ^ 2);
+    rho():number => sqrt(getX() ^ 2 + getY() ^ 2);
 }
 
-type Knight inherits Person("hola","mundo") {
+type Knight(value:string, value1:string) inherits Person(value , value1) {
     name():string => "Sir" @@ base();
-    base():number=>1;
+    //base():number=>1;
 }
 
 type Person(firstname:string, lastname:string) {
@@ -90,71 +90,16 @@ type C inherits A {
 
     print(tan(PI) ** 2 + cot(PI) ** 2);
 
-    let msg = "Hello World" in print(msg);
-    let number = 42, text = "The meaning of life is" in
-        print(text @ number);
-    let number = 42 in
-        let text = "The meaning of life is" in
-            print(text @ number);
-    let number = 42 in (
-        let text = "The meaning of life is" in (
-                print(text @ number)
-            )
-        );
-    let a = 6, b = a * 7 in print(b);
-    let a = 6 in
-        let b = a * 7 in
-            print(b);
-    let a = 5, b = 10, c = 20 in {
-        print(a+b);
-        print(b*c);
-        print(c/a);
-    };
-    let a = (let b = 6 in b * 7) in print(a);
-    print(let b = 6 in b * 7);
-    let a = 20 in {
-        let a = 42 in print(a);
-        print(a);
-    };
-    let a = 7, a = 7 * 6 in print(a);
-    let a = 7 in
-        let a = 7 * 6 in
-            print(a);
-    let a = 0 in {
-        print(a);
-        a := 1;
-        print(a);
-    };
-    let a = 42 in if (a % 2 == 0) {print("Even");} else {print("odd");};
-    let a = 42 in print(if (a % 2 == 0) {"even";} else {"odd";});
-    let a = 42 in
-        if (a % 2 == 0) {
-            print(a);
-            print("Even");
-        }
-        else {
-            print("Odd");
-        };
-    print(
-        if (mod == 0) {"Magic";}
-        elif (mod % 3 == 1) {"Woke";}
-        else {"Dumb";}
-    );
-
-        let a = 10 in while (a >= 0) {
-        print(a);
-        a := a - 1;
+    
+    let a = 10 in while (a >= 0) {
+    print(a);
+    a := a - 1;
     };
     
     for (let x =0; x < 10; x:=x + 1) {
         print(x);
     }
-    let iterable = range(0, 10) in
-        while (iterable.next()){
-            let x = iterable.current() in
-                print(x);
-        };
-    let pt = new Point() in // error
+    let pt = new Point(2,3) in // error
         print("x: " @ pt.getX() @ "; y: " @ pt.getY());
     let pt = new Point(3,4) in
         print("x: " @ pt.getX() @ "; y: " @ pt.getY());

@@ -38,7 +38,7 @@ class TypeCheckerVisitor:
             if not scope.is_defined(node.id.id):
                 self.errors.append(
                     SemanticError(
-                        f"La variable {node.id.id} no esta definida en este scope"
+                        f"La variable {node.id.id} no esta definida en este scope. Linea:{node.location[0]} , Columna:{node.location[1]}"
                     )
                 )
 
@@ -55,7 +55,9 @@ class TypeCheckerVisitor:
         #     return self.context.get_type('any')
         if scope.is_local(node.id.id):
             self.errors.append(
-                SemanticError(f"La variable {node.id.id} ya esta definida.")
+                SemanticError(
+                    f"La variable {node.id.id} ya esta definida. Linea:{node.location[0]} , Columna:{node.location[1]}"
+                )
             )
             return scope.find_variable(node.id.id).type
         else:
@@ -74,7 +76,7 @@ class TypeCheckerVisitor:
         except:
             self.errors.append(
                 SemanticError(
-                    f"Tipo {node.type} no esta definido [L:{node.location[0]}, C:{node.location[1]}]"
+                    f"Tipo {node.type} no esta definido. Linea:{node.location[0]} , Columna:{node.location[1]}"
                 )
             )
             return self.context.get_type("any")
@@ -192,7 +194,7 @@ class TypeCheckerVisitor:
             if not self.visit(node._else, inner_scope).conforms_to(type.name):
                 self.errors.append(
                     SemanticError(
-                        f"Los distintos bloques del if no retornan el mismo tipo."
+                        f"Los distintos bloques del if no retornan el mismo tipo. Linea:{node._else.location[0]} , Columna:{node._else.location[1]}"
                     )
                 )
                 type = self.context.get_type("any")
@@ -336,14 +338,14 @@ class TypeCheckerVisitor:
                     # Si la cantidad de parametros no es correcta se lanza un error
                     self.errors.append(
                         SemanticError(
-                            f"La funcion {node.object_property_to_acces.id} de la clase {base_object_type.name} recibe {len(method.param_names)} parametros y {len(node.args)} fueron suministrados"
+                            f"La funcion {node.object_property_to_acces.id} de la clase {base_object_type.name} recibe {len(method.param_names)} parametros y {len(node.args)} fueron suministrados. Linea: {node.location[0]}"
                         )
                     )
                     return self.context.get_type("any")
             else:
                 self.errors.append(
                     SemanticError(
-                        f"El metodo {node.object_property_to_acces.id} no existe en la clase {base_object_type.name}"
+                        f"El metodo {node.object_property_to_acces.id} no existe en la clase {base_object_type.name}. Linea: {node.location[0]}"
                     )
                 )
                 return self.context.get_type("any")
@@ -357,7 +359,7 @@ class TypeCheckerVisitor:
                 ):
                     self.errors.append(
                         SemanticError(
-                            f"El tipo del parametro {i} no coincide con el tipo del parametro {i} de la funcion {node.object_property_to_acces.id}."
+                            f"El tipo del parametro {i} no coincide con el tipo del parametro {i} de la funcion {node.object_property_to_acces.id}. Linea: {node.location[0]}"
                         )
                     )
                     correct = False
@@ -367,7 +369,7 @@ class TypeCheckerVisitor:
             # Si el id suministrado no es ni un atributo ni un metodo entonces se lanza un error y se retorna el tipo object
             self.errors.append(
                 SemanticError(
-                    f"El objeto de tipo {base_object_type.name} no tiene el metod llamado {node.object_property_to_acces.id}."
+                    f"El objeto de tipo {base_object_type.name} no tiene el metod llamado {node.object_property_to_acces.id}. Linea:{node.location[0]} , Columna:{node.location[1]}"
                 )
             )
             return self.context.get_type("any")
@@ -398,7 +400,7 @@ class TypeCheckerVisitor:
         if not type_1.conforms_to("number") or not type_2.conforms_to("number"):
             self.errors.append(
                 SemanticError(
-                    f"Solo se pueden emplear aritmeticos entre expresiones aritmeticas. On: L: {node.location[0]} C: {node.location[1]}"
+                    f"Solo se pueden emplear aritmeticos entre expresiones aritmeticas. Linea:{node.location[0]} , Columna:{node.location[1]}"
                 )
             )  # TODO
             return self.context.get_type("any")
@@ -527,7 +529,7 @@ class TypeCheckerVisitor:
         ):
             self.errors.append(
                 SemanticError(
-                    f"Esta operacion solo puede ser aplicada a strings o entre una combinacion de string con number."
+                    f"Esta operacion solo puede ser aplicada a strings o entre una combinacion de string con number. Linea:{node.location[0]} , Columna:{node.location[1]}"
                 )
             )
             return self.context.get_type("any")
@@ -546,7 +548,7 @@ class TypeCheckerVisitor:
         ):
             self.errors.append(
                 SemanticError(
-                    f"Esta operacion solo puede ser aplicada a strings o entre una combinacion de string con number."
+                    f"Esta operacion solo puede ser aplicada a strings o entre una combinacion de string con number. Linea:{node.location[0]} , Columna:{node.location[1]}"
                 )
             )
             return self.context.get_type("any")
@@ -600,39 +602,30 @@ class TypeCheckerVisitor:
                 return self.context.get_type("any")
 
             correct = True
-
-            arg_names = [list(parama.items())[0] for parama in node.args]
-            arg_names = [name[0].id for name in arg_names]
-            for i, arg in enumerate(arg_names):
-                if not scope.is_local(arg):
+            # print("bkadjgiu")
+            # x = [type(parama) for parama in ret_type.args]
+            # print(x)
+            arg_types = [parama.type for parama in ret_type.args]
+            arg_names = [parama.name for parama in ret_type.args]
+            for i, arg in enumerate(arg_types):
+                try:
+                    temp_type = self.visit(node.args[i], scope)
+                except:
                     self.errors.append(
                         SemanticError(
-                            f"La variable {arg} no esta definida en el constructor hijo"
+                            f"El tipo del argumento {arg_names[i]} es incorrecto a la hora de heredar de {ret_type.name}. Linea:{node.location[0]}"
+                        )
+                    )
+                    temp_type = self.context.get_type("any")
+                    correct = False
+
+                if not temp_type.conforms_to(ret_type.args[i].type.name):
+                    self.errors.append(
+                        SemanticError(
+                            f"El tipo del argumento {arg_names[i]} es incorrecto a la hora de heredar de {ret_type.name}"
                         )
                     )
                     correct = False
-                    type_name = self.context.get_type("any")
-                else:
-                    type_name = scope.find_local_variable(arg).type.name
-
-                    try:
-                        temp_type = self.context.get_type(type_name)
-                    except:
-                        self.errors.append(
-                            SemanticError(
-                                f"El tipo del argumento {arg} es incorrecto a la hora de heredar de {ret_type.name}"
-                            )
-                        )
-                        temp_type = self.context.get_type("any")
-                        correct = False
-
-                    if not temp_type.conforms_to(ret_type.args[i].type.name):
-                        self.errors.append(
-                            SemanticError(
-                                f"El tipo del argumento {arg} es incorrecto a la hora de heredar de {ret_type.name}"
-                            )
-                        )
-                        correct = False
             return ret_type if correct else self.context.get_type("any")
             # Comprobando los tipos
 
@@ -652,7 +645,9 @@ class TypeCheckerVisitor:
             # return ret_type if correct else self.context.get_type('any')
         except:
             self.errors.append(
-                SemanticError(f"El tipo {node.type.id} no esta definido")
+                SemanticError(
+                    f"El tipo {node.type.id} no esta definido. Linea:{node.location[0]} , Columna:{node.location[1]}"
+                )
             )
             return self.context.get_type("any")
 
@@ -684,7 +679,11 @@ class TypeCheckerVisitor:
         if scope.is_defined(node.id):
             return scope.find_variable(node.id).type
 
-        self.errors.append(SemanticError(f"La variable {node.id} no esta definida"))
+        self.errors.append(
+            SemanticError(
+                f"La variable {node.id} no esta definida. Linea:{node.location[0]} , Columna:{node.location[1]}"
+            )
+        )
         return self.context.get_type("any")
 
     @visitor.when(CollectionNode)

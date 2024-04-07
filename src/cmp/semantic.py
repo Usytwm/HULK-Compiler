@@ -4,9 +4,15 @@ from typing import List
 
 
 class SemanticError(Exception):
+    def __init__(self, *args) -> None:
+        super().__init__(*args)
+
     @property
     def text(self):
         return self.args[0]
+
+    def __str__(self) -> str:
+        return self.text
 
 
 class Attribute:
