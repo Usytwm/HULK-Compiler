@@ -1,4 +1,3 @@
-
 function tan2(x: number): number => sin(x) / cos(x);
 function cot(x:number):number => 1 / tan2(x);
 function operate(x:number, y:number) {

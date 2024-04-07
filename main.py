@@ -36,10 +36,12 @@ class TestHulk(unittest.TestCase):
 
     # ------------------------------Análisis Semántico------------------------------
 
-    checker.semantic_check(ast)
-
-    interprete = TreeInterpreter(checker.context)
-    interprete.visit(ast)
+    error = checker.semantic_check(ast)
+    if len(error) > 0:
+        print(error)
+    else:
+        interprete = TreeInterpreter(checker.context)
+        interprete.visit(ast)
 
 
 if __name__ == "__main__":

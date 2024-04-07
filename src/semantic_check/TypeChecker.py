@@ -712,3 +712,7 @@ class TypeCheckerVisitor:
                 )
             )
             return self.context.get_type("any")
+
+    @visitor.when(PINode)
+    def visit(self, node: PINode, scope: Scope):
+        return self.context.get_type("number")

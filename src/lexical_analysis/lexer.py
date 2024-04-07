@@ -69,8 +69,8 @@ class Lexer:
 
     def _tokenize(self, text):
         # Your code here!!!
-        row = 0
-        col = 0
+        row = 1
+        col = 1
         while text:
             final, lex = self._walk(text)
 

@@ -29,7 +29,7 @@ class TypeBuilderVisitor:
             if inheritance.conforms_to(self.currentType.name):
                 self.errors.append(
                     SemanticError(
-                        f"Dependencias circulares. {inheritance.node.name} hereda de {self.currentType.name}"
+                        f"Dependencias circulares. {node.id.id} hereda de {node.inheritance.type.id}"
                     )
                 )
                 inheritance = self.context.get_type("object")
