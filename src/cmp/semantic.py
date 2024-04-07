@@ -1,8 +1,6 @@
 import itertools as itt
 from collections import OrderedDict
-from typing import Dict, List
-
-from src.tools.ast_nodes import FunctionDefinitionNode
+from typing import List
 
 
 class SemanticError(Exception):
@@ -14,7 +12,7 @@ class SemanticError(Exception):
 class Attribute:
     def __init__(self, name, typex):
         self.name = name
-        self.type = typex
+        self.type: Type = typex
 
     def __str__(self):
         return f"[attrib] {self.name} : {self.type.name};"
@@ -23,38 +21,32 @@ class Attribute:
         return str(self)
 
 
-class Method:
-    def __init__(self, name, param_names, params_types, return_type):
+class Argument:
+    def __init__(self, name, typex):
         self.name = name
-        self.param_names = param_names
-        self.param_types = params_types
-        self.return_type = return_type
-        self.base = None
+        self.type: Type = typex
 
     def __str__(self):
-        params = ", ".join(
-            f"{n}:{t.name}" for n, t in zip(self.param_names, self.param_types)
-        )
-        return f"[method] {self.name}({params}): {self.return_type.name};"
+        return f"[attrib] {self.name} : {self.type.name};"
 
-    def __eq__(self, other):
-        return (
-            other.name == self.name
-            and other.return_type == self.return_type
-            and other.param_types == self.param_types
-        )
+    def __repr__(self):
+        return str(self)
 
-    def define_base(self, method_base):
-        self.base = method_base
+
+class VariableInfo:
+    def __init__(self, vname, vtype):  # ,value
+        self.name = vname
+        self.type = vtype
+        # self.value = value
 
 
 class Type:
     def __init__(self, name: str):
         self.name = name
+        self.inhertance: Type = None
+        self.args: List[Argument] = []
         self.attributes: List[Attribute] = []
         self.methods: List[Method] = []
-        self.args: List[Arguments] = []
-        self.inheritance: Type = None
         self.parent = None
 
     def set_parent(self, parent):
@@ -77,6 +69,17 @@ class Type:
                     f'Attribute "{name}" is not defined in {self.name}.'
                 )
 
+    def get_arg(self, name: str):
+        try:
+            return next(arg for arg in self.args if arg.name == name)
+        except StopIteration:
+            if self.parent is None:
+                raise SemanticError(f'Argument "{name}" is not defined in {self.name}.')
+            try:
+                return self.parent.get_arg(name)
+            except SemanticError:
+                raise SemanticError(f'Argument "{name}" is not defined in {self.name}.')
+
     def define_attribute(self, name: str, typex):
         try:
             self.get_attribute(name)
@@ -84,6 +87,18 @@ class Type:
             attribute = Attribute(name, typex)
             self.attributes.append(attribute)
             return attribute
+        else:
+            raise SemanticError(
+                f'Attribute "{name}" is already defined in {self.name}.'
+            )
+
+    def define_arg(self, name: str, typex):
+        try:
+            self.get_arg(name)
+        except SemanticError:
+            arg = Argument(name, typex)
+            self.args.append(arg)
+            return arg
         else:
             raise SemanticError(
                 f'Attribute "{name}" is already defined in {self.name}.'
@@ -110,33 +125,6 @@ class Type:
         self.methods.append(method)
         return method
 
-    def get_args(self, name: str):
-        try:
-            return next(args for args in self.args if args.name == name)
-        except StopIteration:
-            if self.parent is None:
-                raise SemanticError(
-                    f'Arguments "{name}" is not defined in {self.name}.'
-                )
-            try:
-                return self.parent.get_args(name)
-            except SemanticError:
-                raise SemanticError(
-                    f'Arguments "{name}" is not defined in {self.name}.'
-                )
-
-    def define_argument(self, name: str, typex):
-        try:
-            self.get_args(name)
-        except SemanticError:
-            argument = Arguments(name, typex)
-            self.args.append(argument)
-            return argument
-        else:
-            raise SemanticError(
-                f'Arguments "{name}" is already defined in {self.name}.'
-            )
-
     def all_attributes(self, clean=True):
         plain = (
             OrderedDict() if self.parent is None else self.parent.all_attributes(False)
@@ -154,8 +142,8 @@ class Type:
     def conforms_to(self, other):
         return (
             self.name == other
-            or self.inheritance is not None
-            and self.inheritance.conforms_to(other)
+            or self.inhertance is not None
+            and self.inhertance.conforms_to(other)
         )
 
     def bypass(self):
@@ -178,57 +166,118 @@ class Type:
         return str(self)
 
 
-class Arguments:
-    def __init__(self, name, typex: Type):
+class Method:
+    def __init__(self, name, param_names, params_types, return_type):
         self.name = name
-        self.type = typex
+        self.param_names = param_names
+        self.param_types = params_types
+        self.return_type: Type = return_type
 
     def __str__(self):
-        return f"[argument] {self.name} : {self.type.name};"
-
-    def __repr__(self):
-        return str(self)
-
-
-class ErrorType(Type):
-    def __init__(self):
-        Type.__init__(self, "<error>")
-
-    def conforms_to(self, other):
-        return True
-
-    def bypass(self):
-        return True
+        params = ", ".join(
+            f"{n}:{t.name}" for n, t in zip(self.param_names, self.param_types)
+        )
+        return f"[method] {self.name}({params}): {self.return_type.name};"
 
     def __eq__(self, other):
-        return isinstance(other, Type)
+        return (
+            other.name == self.name
+            and other.return_type == self.return_type
+            and other.param_types == self.param_types
+        )
 
 
-class VoidType(Type):
-    def __init__(self):
-        Type.__init__(self, "<void>")
+class Scope:
+    def __init__(self, parent=None):
+        self.local_variables = set()
+        self.functions: dict[str, List[Method]] = (
+            {}
+        )  # {key: id, valor: len(parameters)}
+        self.parent = parent
+        self.children = []
+        self.index = 0 if parent is None else len(parent)
 
-    def conforms_to(self, other):
-        raise Exception("Invalid type: void type.")
+    def __len__(self):
+        return len(self.local_variables)
 
-    def bypass(self):
-        return True
+    def create_child(self):
+        child = Scope(self)
+        self.children.append(child)
+        return child
 
-    def __eq__(self, other):
-        return isinstance(other, VoidType)
+    def define_variable(self, vname, vtype):
+        info = VariableInfo(vname, vtype)
+        self.local_variables.add(info)
+        return info
 
+    def find_local_variable(self, vname, index=None):
+        locals = (
+            self.local_variables
+            if index is None
+            else itt.islice(self.local_variables, index)
+        )
+        try:
+            return next(x for x in locals if x.name == vname)
+        except StopIteration:
+            return None
 
-class IntType(Type):
-    def __init__(self):
-        Type.__init__(self, "int")
+    def find_variable(self, vname, index=None):
+        locals = (
+            self.local_variables
+            if index is None
+            else itt.islice(self.local_variables, index)
+        )
+        try:
+            return next(x for x in locals if x.name == vname)
+        except StopIteration:
+            return (
+                self.parent.find_variable(vname, self.index)
+                if not self.parent is None
+                else None
+            )
 
-    def __eq__(self, other):
-        return other.name == self.name or isinstance(other, IntType)
+    def find_functions(self, vname, index=None):
+        try:
+            return self.functions[vname]
+        except:
+            return (
+                self.parent.find_functions(vname, self.index)
+                if not self.parent is None
+                else None
+            )
+
+    def is_defined(self, vname):
+        return self.find_variable(vname) is not None
+
+    def is_local(self, vname):
+        return any(True for x in self.local_variables if x.name == vname)
+
+    def method_is_define(self, vname, params_num):
+        try:
+            methods = [
+                method
+                for method in self.functions[vname]
+                if len(method.param_names) == params_num
+            ]
+            return len(methods) != 0
+        except:
+            raise SemanticError(f"La funcion {vname} no esta definida")
+
+    def get_method(self, vname, params_num):
+        try:
+            methods = [
+                method
+                for method in self.functions[vname]
+                if len(method.param_names) == params_num
+            ]
+            return methods[0]
+        except:
+            raise SemanticError(f"La funcion {vname} no esta definida")
 
 
 class Context:
     def __init__(self):
-        self.types = {}
+        self.types: dict[str, Type] = {}
 
     def create_type(self, name: str):
         if name in self.types:
@@ -251,60 +300,3 @@ class Context:
 
     def __repr__(self):
         return str(self)
-
-
-class VariableInfo:
-    def __init__(self, name, vtype):
-        self.name = name
-        self.type = vtype
-
-
-class Scope:
-    def __init__(self, parent=None):
-        self.locals = []
-        self.parent = parent
-        self.children = []
-        self.functions: Dict[str, List[Method]] = {}
-        self.index = 0 if parent is None else len(parent)
-        self.node: Dict[str, List[FunctionDefinitionNode]] = {}
-
-    def __len__(self):
-        return len(self.locals)
-
-    def method_is_define(self, vname, params_num):
-        try:
-            methods = [
-                method
-                for method in self.functions[vname]
-                if len(method.param_names) == params_num
-            ]
-            return len(methods) != 0 if len(self.functions[vname]) != 0 else False
-        except:
-            raise SemanticError(f"La funcion {vname} no esta definida")
-
-    def create_child(self):
-        child = Scope(self)
-        self.children.append(child)
-        return child
-
-    def define_variable(self, vname, vtype):
-        info = VariableInfo(vname, vtype)
-        self.locals.append(info)
-        return info
-
-    def find_variable(self, vname, index=None):
-        locals = self.locals if index is None else itt.islice(self.locals, index)
-        try:
-            return next(x for x in locals if x.name == vname)
-        except StopIteration:
-            return (
-                self.parent.find_variable(vname, self.index)
-                if not self.parent is None
-                else None
-            )
-
-    def is_defined(self, vname):
-        return self.find_variable(vname) is not None
-
-    def is_local(self, vname):
-        return any(True for x in self.locals if x.name == vname)
