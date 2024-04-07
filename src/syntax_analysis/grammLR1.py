@@ -144,7 +144,7 @@ expr_statement %= oBrace + statement_list + cBrace, lambda h, s: CollectionNode(
 # expr_statement %= expr_statementWithoutSemi, lambda h, s: s[1]
 # expr_statementWithoutSemi %= assignment + In + oBrace + statement_list + cBrace, lambda h, s: LetInNode(s[1], s[3])
 
-print_statement %= Print + oPar + expression + cPar, lambda h, s: PrintStatmentNode(
+print_statement %= Print + oPar + expr_statement + cPar, lambda h, s: PrintStatmentNode(
     s[3]
 )
 

@@ -20,6 +20,7 @@ class SemanticCheck:
         self.default_functions = [
             "sin",
             "cos",
+            "tan",
             "sqrt",
             "exp",
             "rand",
