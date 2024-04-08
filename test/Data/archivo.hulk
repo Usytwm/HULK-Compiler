@@ -164,7 +164,11 @@ type C inherits A {
         print(p.name());
     let p = new Knight("Phil", "Collins") in print(p.name());
     let x = 42 in print(x);
-
+    print({
+        2 + 3;
+    } + {
+        2 + 3;
+    });
     let x = new Superman() in
         print(
             if (x is Bird) {"It's bird!";}

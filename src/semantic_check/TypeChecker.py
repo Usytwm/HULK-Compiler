@@ -60,11 +60,11 @@ class TypeCheckerVisitor:
     @visitor.when(TypeNode)
     def visit(self, node: TypeNode, scope: Scope):
         try:
-            return self.context.get_type(node.type_annotation.type)
+            return self.context.get_type(node.type)
         except:
             self.errors.append(
                 SemanticError(
-                    f"Tipo {node.type_annotation.type} no esta definido. --> row:{node.type_annotation.location[0]}, col:{node.type_annotation.location[1]}"
+                    f"Tipo {node.type} no esta definido. --> row:{node.location[0]}, col:{node.location[1]}"
                 )
             )
             return self.context.get_type("any")
@@ -175,7 +175,7 @@ class TypeCheckerVisitor:
                 if not aux_type.conforms_to(type.name):
                     self.errors.append(
                         SemanticError(
-                            f"Los distintos bloques del if no retornan el mismo tipo."
+                            f"Los distintos bloques del if no retornan el mismo tipo. --> row:{item.location[0]}, col:{item.location[1]}"
                         )
                     )
                     type = self.context.get_type("any")
@@ -296,7 +296,7 @@ class TypeCheckerVisitor:
             if len(class_type.args) != len(node.args):
                 self.errors.append(
                     SemanticError(
-                        f"La cantidad de argumentos no coincide con la cantidad de atributos de la clase {node.type.name}."
+                        f"La cantidad de argumentos no coincide con la cantidad de atributos de la clase {node.type.name} --> row:{node.location[0]}, col:{node.location[1]}."
                     )
                 )
                 correct = False
@@ -333,7 +333,7 @@ class TypeCheckerVisitor:
                 if len(node.args) != len(method.param_names):
                     self.errors.append(
                         SemanticError(
-                            f"La funcion {node.object_property_to_acces.id} de la clase {base_object_type.name} recibe {len(method.param_names)} parametros y {len(node.args)} fueron suministrados"
+                            f"La funcion {node.object_property_to_acces.id} de la clase {base_object_type.name} recibe {len(method.param_names)} parametros y {len(node.args)} fueron suministrados. --> row:{node.object_property_to_acces.location[0]}, col:{node.object_property_to_acces.location[1]}"
                         )
                     )
                     return self.context.get_type("any")
@@ -362,7 +362,7 @@ class TypeCheckerVisitor:
             # Si el id suministrado no es ni un atributo ni un metodo entonces se lanza un error y se retorna el tipo object
             self.errors.append(
                 SemanticError(
-                    f"El objeto de tipo {base_object_type.name} no tiene el metod llamado {node.object_property_to_acces.id}."
+                    f"El objeto de tipo {base_object_type.name} no tiene el metod llamado {node.object_property_to_acces.id}. --> row:{node.object_property_to_acces.location[0]}, col:{node.object_property_to_acces.location[1]} "
                 )
             )
             return self.context.get_type("any")
