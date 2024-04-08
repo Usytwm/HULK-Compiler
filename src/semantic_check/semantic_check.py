@@ -1,4 +1,3 @@
-from src.semantic_check.interpreter import TreeWalkInterpreter
 from src.cmp.semantic import Context, Method, Scope, Type
 from src.semantic_check.TypeBuilder import TypeBuilderVisitor
 from src.semantic_check.TypeChecker import TypeCheckerVisitor
@@ -7,6 +6,7 @@ from src.semantic_check.TypeCollector import TypeCollectorVisitor
 
 class SemanticCheck:
     def __init__(self) -> None:
+        # ------------------Inicializando tipos por defecto---------------------------------------------------#
         self.context = Context()
         self.context.create_type("object")
         default_types = ["number", "string", "bool", "void", "any"]
@@ -20,27 +20,25 @@ class SemanticCheck:
         self.default_functions = [
             "sin",
             "cos",
-            "tan",
             "sqrt",
             "exp",
+            "tan",
             "rand",
             "log",
             "print",
         ]
         self.errors = []
 
-    def semantick_check(self, ast):
-        type_collector = TypeCollectorVisitor(self.context, self.scope, self.errors)
+    def semantic_check(self, ast):
+        type_collector = TypeCollectorVisitor(self.context, self.errors)
         type_collector.visit(ast)
 
-        build_collector = TypeBuilderVisitor(self.context, self.scope, self.errors)
-        build_collector.visit(ast)
+        type_builder = TypeBuilderVisitor(self.context, self.scope, self.errors)
+        type_builder.visit(ast)
 
-        semantic_checking = TypeCheckerVisitor(
+        type_checker = TypeCheckerVisitor(
             self.context, self.scope, self.errors, self.default_functions
         )
-        semantic_checking.visit(ast)
-        print(self.errors)
-        if len(self.errors) == 0:
-            interpreter = TreeWalkInterpreter()
-            interpreter.visit(ast)
+        type_checker.visit(ast)
+
+        return self.errors

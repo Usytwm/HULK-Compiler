@@ -4,7 +4,7 @@ from src.syntax_analysis.LR1Parser import LR1Parser
 from src.lexical_analysis.lexer import Lexer
 from src.lexical_analysis.regex_patterns import build_regex
 from src.syntax_analysis.grammLR1 import EOF, gramm_Hulk_LR1
-from src.semantic_check.interpreter import TreeWalkInterpreter
+from src.semantic_check.interpreter import TreeInterpreter
 import unittest
 
 
@@ -19,7 +19,8 @@ class TestHulk(unittest.TestCase):
         build_regex(),
         EOF,
     )
-    parser = LR1Parser(grammar)
+
+    parser = LR1Parser(grammar, rebuild=False)
     checker = SemanticCheck()
 
     # --------------------------------Análisis Léxico--------------------------------
@@ -35,7 +36,12 @@ class TestHulk(unittest.TestCase):
 
     # ------------------------------Análisis Semántico------------------------------
 
-    checker.semantick_check(ast)
+    error = checker.semantic_check(ast)
+    if len(error) > 0:
+        print(error)
+    else:
+        interprete = TreeInterpreter(checker.context)
+        interprete.visit(ast)
 
 
 if __name__ == "__main__":

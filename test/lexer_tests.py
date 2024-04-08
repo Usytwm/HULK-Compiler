@@ -425,14 +425,11 @@ class TestLexer(unittest.TestCase):
             result_tokens = lexer(content)
             print(result_tokens)
 
-
-        
     def assertLexerOutput(self, input_text, expected_tokens: list[Token]):
         lexer = Lexer(
             build_regex(),
             "eof",
         )
-        
 
         result_tokens = lexer(input_text)
         print("Resultado")

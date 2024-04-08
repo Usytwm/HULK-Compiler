@@ -69,6 +69,8 @@ class Lexer:
 
     def _tokenize(self, text):
         # Your code here!!!
+        row = 1
+        col = 1
         while text:
             final, lex = self._walk(text)
 
@@ -80,12 +82,23 @@ class Lexer:
             final.sort()
 
             if self.spaces and final[0][1] == "space":
+                col += len(lex)
                 continue
-            if final[0][1] == "comment":
-                continue
-            yield lex, final[0][1]
 
-        yield "$", self.eof
+            if final[0][1] == "newline":
+                row += 1
+                col = 1
+                continue
+
+            if final[0][1] == "comment":
+                col += len(lex)
+                continue
+            col += len(lex)
+            yield lex, final[0][1], row, col - len(lex)
+
+        yield "$", self.eof, row, col
 
     def __call__(self, text):
-        return [Token(lex, ttype) for lex, ttype in self._tokenize(text)]
+        return [
+            Token(lex, ttype, row, col) for lex, ttype, row, col in self._tokenize(text)
+        ]

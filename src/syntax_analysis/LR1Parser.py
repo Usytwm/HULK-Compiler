@@ -13,6 +13,7 @@ from src.cmp.automata import multiline_formatter, State
 import sys
 import os
 import json
+from dill import dump, load
 
 current_dir = os.getcwd()
 sys.path.insert(0, current_dir)
@@ -23,12 +24,21 @@ class ShiftReduceParser:
     REDUCE = "REDUCE"
     OK = "OK"
 
-    def __init__(self, G, verbose=False):
+    def __init__(self, G, min_verbose=False, verbose=False, rebuild=False):
         self.G = G
         self.verbose = verbose
-        self.action = {}
-        self.goto = {}
-        self._build_parsing_table()
+        self.min_verbose = False
+        if rebuild:
+            self.action = {}
+            self.goto = {}
+            self._build_parsing_table()
+            with open("table.joblib", "wb") as f:
+                dump((self.action, self.goto), f)
+        else:
+            with open("table.joblib", "rb") as f:
+                action, goto = load(f)
+                self.action = action
+                self.goto = goto
 
     def _build_parsing_table(self):
         raise NotImplementedError()
@@ -47,16 +57,22 @@ class ShiftReduceParser:
 
             # Detect error
             try:
-                action, tag = self.action[state, lookahead]
+                action, tag = self.findActionAndTag(state, lookahead)
                 # Shift case
                 if action == ShiftReduceParser.SHIFT:
                     operations.append(ShiftReduceParser.SHIFT)
-                    print(f"Shift: Tag: {tag} State: {state} Lookahead: {lookahead}")
+                    if self.min_verbose:
+                        print(
+                            f"Shift: Tag: {tag} State: {state} Lookahead: {lookahead}"
+                        )
                     stack.append(tag)
                     cursor += 1
                 # Reduce case
                 elif action == ShiftReduceParser.REDUCE:
-                    print(f"Reduce: Tag: {tag} State: {state} Lookahead: {lookahead}")
+                    if self.min_verbose:
+                        print(
+                            f"Reduce: Tag: {tag} State: {state} Lookahead: {lookahead}"
+                        )
                     for _ in range(len(tag.Right)):
                         stack.pop()
                     operations.append(ShiftReduceParser.REDUCE)
@@ -68,8 +84,15 @@ class ShiftReduceParser:
                 # Invalid case
                 else:
                     assert False, "Must be something wrong!"
-            except KeyError:
-                raise Exception("Aborting parsing, item is not viable.")
+            except:
+                raise Exception(
+                    f"Aborting parsing, item is not viable. lookahead: {lookahead}"
+                )
+
+    def findActionAndTag(self, state, lookahead):
+        for key, value in self.action.items():
+            if state == key[0] and lookahead.Name == key[1].Name:
+                return value
 
     def __iter__(self):
         # El iterador es el objeto mismo en este caso.
