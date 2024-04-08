@@ -176,6 +176,53 @@ type C inherits A {
 
 
 ----otro
+type Knight(value:string, value1:string) inherits Person(value , value1) {
+    name():string => "Sir" @@ base();
+    base():number=>1;
+}
+
+type Person(firstname:string, lastname:string) {
+    self.firstname = firstname;
+    self.lastname = lastname;
+
+    name(): string => self.firstname @@ self.lastname;
+    hash() : number {
+        5;
+    }
+}
+{
+    let p = new Knight("Phil", "Collins") in
+        print(p.name());
+}
+
+type A{
+    self.x = 2;
+    getx() => self.x;
+}
+
+type B inherits A{
+    self.y = 3;
+}
+  
+type C inherits B{
+    self.x = 4;
+    getx() => self.x;
+}
+
+let b = (new C()).getx() in print(b);
+let a = new A();
+print(a.getx());
+
+let b = new B();
+print(b.getx());
+
+let c = new C();
+print(c.getx());
+
+a := b;
+//b := a;
+
+
 type Range(min:number, max:number) {
     self.min = min;
     self.max = max;

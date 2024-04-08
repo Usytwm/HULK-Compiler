@@ -1,3 +1,24 @@
+function cot(x: number): number => 1 / tan(x);
+function operate(x :number, y: number) {
+    print(x + y);
+    print(x - y);
+    print(x * y);
+    print(x / y);
+}
+function fib(n: number):number => if (n == 0 or n == 1) {1;} else {fib(n - 1) + fib(n - 2);}
+print(fib(9));
+function fact(x:number):number => let f = 1 in for (let i = 1; i <= x; i:= i + 1) {f := f * i;};
+print(fact(5));
+function gcd(a: number , b: number):number => while (b > 0){
+        let m = a % b in {
+            a := b;
+            b := m;
+            a;
+        };
+    };
+
+print(gcd(5,3));
+
 
 type Range(min:number, max:number) {
     self.min = min;
@@ -7,49 +28,148 @@ type Range(min:number, max:number) {
     next(): bool => (self.current := self.current + 1) < self.max;
     current(): number => self.current;
 }
-    
-   let range = new Range(0,10) in 
-   while(range.next()) 
-   {
-        print(range.current());
-   };
+type Point(x:number,y:number) {
+    self.x = x;
+    self.y = y;
 
-type A{
-    self.x = 2;
-    getx() => self.x;
+    getX():number => self.x;
+    getY():number => self.y;
+
+    setX(x:number) => self.x := x;
+    setY(y:number) => self.y := y;
+}
+type PolarPoint(phi:number, rho:number) inherits Point(rho , phi) {
+    rho():number => sqrt(getX() ^ 2 + getY() ^ 2);
 }
 
-type B inherits A{
-    self.y = 3;
-}
-  
-type C inherits B{
-    self.x = 4;
-    getx() => base() + base();
+type Knight(value:string, value1:string) inherits Person(value , value1) {
+    name():string => "Sir" @@ "hola";
+    base():number=>1;
 }
 
-let b = (new C()).getx() in print(b);
-let a = new A();
+type Person(firstname:string, lastname:string) {
+    self.firstname = firstname;
+    self.lastname = lastname;
 
-let b = new B();
+    name(): string => self.firstname @@ self.lastname;
+    hash() : number {
+        5;
+    }
+}
+type Superman {
+}
+type Bird {
+}
+type Plane {
+}
+type A {
+    hello() => print("A");
+}
 
-let c = new C();
+type B inherits A {
+    hello() => print("B");
+}
 
-a := b;
-//b := a;
+type C inherits A {
+    hello() => print("C");
+}
 
-let var = 3;
-//var2 := 2;
-
-print(var);
-
-print(while(var<=10){
-    var:= var + 1;
-    print(var);
-}* 10);
-
-for(var := 1;var < 10 or False; var:= var + 1)
 {
-    let c = 10 in print("c = "@ c @", var = "@ var @ ", result = " @ c/var @ ", resto =" @@ c%var);
-}
+    42;
+    print(42);
+    print((((1 + 2) ^ 3) * 4) / 5);
+    print("Hello World");
+    print("The message is \"Hello World\"");
+    print("The meaning of life is " @ 42);
+    print(sin(2 * PI) ^ 2 + cos(3 * PI / log(4, 64)));
+    {
+        print(42);
+        print(sin(PI/2));
+        print("Hello World");
+    }
+    print(tan(PI) ** 2 + cot(PI) ** 2);
+    let msg = "Hello World" in print(msg);
+    let number = 42, text = "The meaning of life is" in
+        print(text @ number);
+    let number = 42 in
+        let text = "The meaning of life is" in
+            print(text @ number);
+    let number = 42 in (
+        let text = "The meaning of life is" in (
+                print(text @ number)
+            )
+        );
+    let a = 6, b = a * 7 in print(b);
+    let a = 6 in
+        let b = a * 7 in
+            print(b);
+    let a = 5, b = 10, c = 20 in {
+        print(a+b);
+        print(b*c);
+        print(c/a);
+    };
+    let a = (let b = 6 in b * 7) in print(a);
+    print(let b = 6 in b * 7);
+    let a = 20 in {
+        let a = 42 in print(a);
+        print(a);
+    };
+    let a = 7, b = 7 * 6 in print(b);
+    let a = 7 in
+        let a = 7 * 6 in
+            print(a);
+    let a = 0 in {
+        print(a);
+        a := 1;
+        print(a);
+    };
+    let a = 42 in if (a % 2 == 0) {print("Even");} else {print("odd");};
+    let a = 42 in print(if (a % 2 == 0) {"even";} else {"odd";});
+    let a = 42 in
+        if (a % 2 == 0) {
+            print(a);
+            print("Even");
+        }
+        else {
+            print("Odd");
+        };
+    let mod = 4;
+    print(
+        if (mod == 0) {"Magic";}
+        elif (mod % 3 == 1) {"Woke";}
+        else {"Dumb";}
+    );
 
+        let a = 10 in while (a >= 0) {
+        print(a);
+        a := a - 1;
+    };
+    
+    for (let x =0; x < 10; x:=x + 1) {
+        print(x);
+    }
+    let iterable = new Range(0, 10) in
+        while (iterable.next()){
+            let x = iterable.current() in
+                print(x);
+        };
+    let pt = new Point(5,6) in // error
+        print("x: " @ pt.getX() @ "; y: " @ pt.getY());
+    let pt = new Point(3,4) in
+        print("x: " @ pt.getX() @ "; y: " @ pt.getY());
+    let pt = new PolarPoint(3,4) in
+        print("rho: " @ pt.rho());
+
+    let p = new Knight("Phil", "Collins") in
+        print(p.name());
+    let p = new Knight("Phil", "Collins") in print(p.name());
+    let x = 42 in print(x);
+
+    let x = new Superman() in
+        print(
+            if (x is Bird) {"It's bird!";}
+            elif (x is Plane) {"It's a plane!";}
+            else {"No, it's Superman!";}
+        );
+    let x = 42 in print(x);
+}
