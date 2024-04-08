@@ -7,6 +7,22 @@ from src.cmp.semantic import *
 import src.cmp.visitor as visitor
 
 
+class AttributeInstance:
+    def __init__(self, name, type, value) -> None:
+        self.name = name
+        self.type = type
+        self.value = value
+
+
+class InstanceType:
+    def __init__(self, type, attrs) -> None:
+        self.type = type
+        self.attrs: dict[str, Type] = attrs
+
+    def __str__(self):
+        return f'{self.type}({", ".join([f"{k}: {v.value}" for k, v in self.attrs.items()])})'
+
+
 class InterpreterScope(Scope):
     def __init__(self, parent=None):
         super().__init__(parent)
@@ -24,19 +40,15 @@ class InterpreterScope(Scope):
         return info
 
     def find_variable_value(self, vname, index=None):
-        locals = (
-            self.local_variables
-            if index is None
-            else itt.islice(self.local_variables, index)
+        for x in self.local_variables:
+            if x.name == vname:
+                return x, self.var_values[x.name]
+
+        return (
+            self.parent.find_variable_value(vname, self.index)
+            if not self.parent is None
+            else None
         )
-        try:
-            return next((x, self.var_values[x.name]) for x in locals if x.name == vname)
-        except StopIteration:
-            return (
-                self.parent.find_variable_value(vname, self.index)
-                if not self.parent is None
-                else None
-            ), None
 
     def set_variable_value(self, vname, value, index=0):
         for x in self.local_variables:
@@ -45,22 +57,10 @@ class InterpreterScope(Scope):
                 return
 
         return (
-            self.parent.find_variable_value(vname, self.index)
+            self.parent.set_variable_value(vname, value, self.index)
             if not self.parent is None
             else None
         )
-
-
-class InterpreterMethod(Method):
-    def __init__(self, name, param_names, params_types, return_type, body):
-        super().__init__(name, param_names, params_types, return_type)
-        self.body = body
-
-
-class InterpreterAttribute(Attribute):
-    def __init__(self, name, typex, value):
-        super().__init__(name, typex)
-        self.value = value
 
 
 class TreeInterpreter:
@@ -82,7 +82,7 @@ class TreeInterpreter:
 
     @visitor.when(PrintStatmentNode)
     def visit(self, node: PrintStatmentNode, scope: InterpreterScope):
-        _, value = self.visit(node.expression, scope)
+        _, value = self.visit_body(node.expression, scope)
         print(value)
         return self.context.get_type("string"), value
 
@@ -103,6 +103,10 @@ class TreeInterpreter:
     def visit(self, node: StringNode, scope: InterpreterScope):
         word = node.value[1 : len(node.value) - 1]
         return self.context.get_type("string"), str(word)
+
+    @visitor.when(PINode)
+    def visit(self, node: PINode, scope: InterpreterScope):
+        return self.context.get_type("number"), math.pi
 
     @visitor.when(BooleanNode)
     def visit(self, node: BooleanNode, scope: InterpreterScope):
@@ -133,34 +137,6 @@ class TreeInterpreter:
         except:
             return self.context.get_type("any"), None
 
-    @visitor.when(TypeDefinitionNode)
-    def visit(self, node: TypeDefinitionNode, scope: InterpreterScope):
-        pass
-
-    @visitor.when(FunctionDefinitionNode)
-    def visit(self, node: FunctionDefinitionNode, scope: InterpreterScope):
-        if self.currentType:
-            try:
-                self.scope.node[self.currentType.name].append(node)
-            except:
-                self.scope.node[self.currentType.name] = [node]
-        else:
-            try:
-                self.scope.node[None].append(node)
-            except:
-                self.scope.node[None] = [node]
-
-    @visitor.when(FunctionCallNode)
-    def visit(self, node: FunctionCallNode, scope: InterpreterScope):
-        function = list(
-            filter(
-                lambda x: len(x.parameters) == len(node.args), self.scope.node[node.id]
-            )
-        )[0]
-
-        for statment in function.body:
-            self.visit(statment)
-
     @visitor.when(IfStructureNode)
     def visit(self, node: IfStructureNode, scope: InterpreterScope):
         _, condition = self.visit(node.condition, scope)
@@ -171,14 +147,17 @@ class TreeInterpreter:
                 _, elif_condition = self.visit(elif_node.condition, scope)
                 if elif_condition:
                     return self.visit_body(elif_node.body, scope)
-
+        # elif len(node._else) != 0:
         return self.visit_body(node._else.body, scope)
+
+        # return self.context.get_type('any'), None
 
     def visit_body(self, node, scope):
         result = self.context.get_type("any"), None
         if type(node) == list:
             for statement in node:
-                result = self.visit(statement, scope)
+                aux = self.visit(statement, scope)
+                result = aux if aux[1] != None else result
             return result
         return self.visit(node, scope)
 
@@ -323,8 +302,8 @@ class TreeInterpreter:
         return self.context.get_type("number"), math.sqrt(expression_value)
 
     @visitor.when(SinMathNode)
-    def visit(self, node: SinMathNode):
-        _, expression_value = self.visit(node.node)
+    def visit(self, node: SinMathNode, scope: InterpreterScope):
+        _, expression_value = self.visit(node.node, scope)
         return self.context.get_type("number"), math.sin(expression_value)
 
     @visitor.when(CosMathNode)
@@ -358,7 +337,7 @@ class TreeInterpreter:
 
     @visitor.when(LogFunctionCallNode)
     def visit(self, node: LogFunctionCallNode, scope: InterpreterScope):
-        _, base_value = self.visit(node.base)
+        _, base_value = self.visit(node.base, scope)
         _, expression_value = self.visit(node.expression, scope)
         if expression_value <= 0:
             raise Exception(
@@ -378,472 +357,96 @@ class TreeInterpreter:
         _, right_value = self.visit(node.right, scope)
         return self.context.get_type("string"), str(left_value) + " " + str(right_value)
 
+    # _______Bloque-3________________________________________________________________________________________________________________________________________________________________________
 
-# class ScopeInterprete(Scope):
-#     def __init__(self, parent=None):
-#         super().__init__(parent)
-#         self.variable = {}
+    @visitor.when(LetInExpressionNode)
+    def visit(self, node: LetInExpressionNode, scope: InterpreterScope):
+        inner_scope = scope.create_child()
+        self.visit(node.assigments, inner_scope)
+        return self.visit_body(node.body, inner_scope)
 
-#     def asign_variable(self, name, value):
-#         self.variable[name] = value
-#         self.define_variable(name, value)
+    # _______Bloque-4__________________________________________________________________________________________________________________________________________________________________//
 
-#     def get_variable(self, name):
-#         return self.variable.get(name, None)
+    @visitor.when(FunctionDefinitionNode)
+    def visit(self, node: FunctionDefinitionNode, scope: InterpreterScope):
+        if self.currentType:
+            try:
+                type: Type = self.context.get_type(self.currentType.name)
+                method_1: Method = type.get_method(node.id.id, len(node.parameters))
+                method_1.body = node.body
+            except:
+                pass
+                # self.scope.node[self.currentType.name] = [node]
+        else:
+            method = Method(
+                node.id.id,
+                [list(param.items())[0][0] for param in node.parameters],
+                [
+                    self.context.get_type(list(param.items())[0][1].type)
+                    for param in node.parameters
+                ],
+                node.type_annotation,
+            )
+            method.body = node.body
+            try:
+                scope.functions[node.id.id].append(method)
+            except:
+                scope.functions[node.id.id] = [method]
 
-#     def create_child(self):
-#         child = ScopeInterprete(self)
-#         child.node = self.node
-#         child.variable = deepcopy(self.variable)
-#         self.children.append(child)
-#         return child
+    @visitor.when(FunctionCallNode)
+    def visit(self, node: FunctionCallNode, scope: InterpreterScope):
+        try:
+            method: Method = self.currentType.get_method(node.id.id)
+        except:
+            # Como ya paso por el chequeo semantico solo llega aca cuando current type es None
+            method: Method = scope.get_method(node.id.id, len(node.args))
+            # [func for func in scope.functions[node.id.id] if len(func.param_names) == len(node.args)][0]
 
+        inner_scope = scope.create_child()
+        for i in range(len(node.args)):
+            _, value = self.visit(node.args[i], inner_scope)
+            inner_scope.define_variable(
+                method.param_names[i].id, method.param_types[i], value
+            )
+        return self.visit_body(method.body, inner_scope)
 
-# class ContextInterprete(Context):
-#     def __init__(self):
-#         super().__init__()
-#         self.node = {}
+    @visitor.when(TypeDefinitionNode)
+    def visit(self, node: TypeDefinitionNode, scope: InterpreterScope):
+        self.currentType = self.context.get_type(node.id.id)
 
-#     def create_node(self, name, node):
-#         self.node[name] = [node]
+        for attr in node.attributes:
+            self.currentType.set_attribute_expression(attr.id.id, attr.expression)
 
-#     def get_node(self, name):
-#         return self.node.get(name, None)
+        for method in node.methods:
+            meth = self.currentType.get_method(method.id.id)
+            meth.body = method.body
 
+        self.currentType = None
 
-# class TreeWalkInterpreter:
+    @visitor.when(KernInstanceCreationNode)
+    def visit(self, node: KernInstanceCreationNode, scope: InterpreterScope):
+        type: Type = self.context.get_type(node.type.id)
+        instance = {}
+        inner_scope = scope.create_child()
 
-#     def __init__(self):
-#         self.context = ContextInterprete()
-#         self.scope = ScopeInterprete()
-#         self.errors = []
-#         self.currentType: Type = None
+        # Construir los argumentos basando el los argumentos que tienen el nodo basandose en los valores de los argumentos
+        for i, arg_node in enumerate(node.args):
+            type_arg, value = self.visit(arg_node, inner_scope)
+            # Ver si aqui type.attributes[i].name es un Identifier o es un string
+            inner_scope.define_variable(type.args[i].name, type_arg, value)
 
-#     @visitor.on("node")
-#     def visit(self, node, tabs):
-#         pass
+        # Le pone valor a cada uno d los atributos de la instancia
+        for attr_name, expression in type.attrs_expression.items():
+            type_attr, value = self.visit(expression, inner_scope)
+            instance[attr_name] = AttributeInstance(attr_name, type_attr, value)
 
-#     @visitor.when(ProgramNode)
-#     def visit(self, node: ProgramNode):
-#         for statement in node.statments:
-#             self.visit(statement, self.scope, self.context)
+        return type, InstanceType(type.name, instance)
 
-#     @visitor.when(CollectionNode)
-#     def visit(self, node: CollectionNode, scope: Scope = None, Context: Context = None):
-#         ret = None
-#         for element in node.collection:
-#             ret = self.visit(element, scope, Context)
-#         return ret
+    @visitor.when(InstanceType)
+    def visit(self, node: InstanceType, scope: IndentationError):
+        return node.type, node.attrs
 
-#     @visitor.when(LetInExpressionNode)
-#     def visit(
-#         self, node: LetInExpressionNode, scope: Scope = None, Context: Context = None
-#     ):
-
-#         self.visit(node.assigments, scope, Context)
-#         ret = None
-#         if isinstance(node.body, List):
-#             for statment in node.body:
-#                 ret = self.visit(statment, scope, Context)
-#             return ret
-#         else:
-#             return self.visit(node.body, scope, Context)
-
-#     @visitor.when(KernAssigmentNode)
-#     def visit(
-#         self, node: KernAssigmentNode, scope: Scope = None, Context: Context = None
-#     ):
-#         scope.asign_variable(node.id.id, self.visit(node.expression, scope))
-#         return scope.get_variable(node.id.id)
-
-#     @visitor.when(KernInstanceCreationNode)
-#     def visit(
-#         self,
-#         node: KernInstanceCreationNode,
-#         scope: Scope = None,
-#         Context: Context = None,
-#     ):
-#         return node
-
-#     @visitor.when(DestroyNode)
-#     def visit(self, node: DestroyNode, scope: Scope = None, Context: Context = None):
-#         scope.asign_variable(node.id.id, self.visit(node.expression, scope))
-#         return scope.get_variable(node.id.id)
-
-#     @visitor.when(PrintStatmentNode)
-#     def visit(
-#         self, node: PrintStatmentNode, scope: Scope = None, Context: Context = None
-#     ):
-#         value = self.visit(node.expression, scope, Context)
-#         print(value)
-#         return value
-
-#     # @visitor.when(MemberAccessNode)
-#     # !a,i tengo que arreglarlo ;ara que devuelva lo correcto, eso implica arreglar cosas en la definicion de un tipo y en la asignacion
-#     # def visit(
-#     #     self, node: MemberAccessNode, scope: Scope = None, Context: Context = None
-#     # ):
-
-#     #     type = self.context.get_node(node.type.id)
-
-#     #     for i, param in enumerate(function.parameters):
-#     #         scope.asign_variable(
-#     #             list(param.keys())[0].id, self.visit(node.args[i], scope, Context)
-#     #         )
-#     #     ret = None
-#     #     for statment in function.body:
-#     #         ret = self.visit(statment, scope, Context)
-#     #     return ret
-
-#     @visitor.when(NumberNode)
-#     def visit(self, node: NumberNode, scope: Scope = None, Context: Context = None):
-#         return float(node.value)
-
-#     @visitor.when(StringNode)
-#     def visit(self, node: StringNode, scope: Scope = None, Context: Context = None):
-#         value = re.sub(r'^"|"$', "", node.value)
-#         return value
-
-#     @visitor.when(TypeDefinitionNode)
-#     def visit(
-#         self, node: TypeDefinitionNode, scope: Scope = None, context: Context = None
-#     ):
-
-#         self.currentType = self.context.create_type(node.id)
-#         child = scope.create_child()
-#         for method in node.methods:
-#             self.visit(method, child, context)
-
-#         self.context.create_node(node.id, node)
-#         if node.inheritance:
-#             try:
-#                 node.methods.extends(self.context.get_node(node.inheritance).methods)
-#             except:
-#                 node.methods.extend([])
-#         self.currentType = None
-
-#     @visitor.when(FunctionDefinitionNode)
-#     def visit(
-#         self, node: FunctionDefinitionNode, scope: Scope = None, Context: Context = None
-#     ):
-#         if self.currentType:
-#             try:
-#                 self.scope.node[self.currentType.name].append(node)
-#             except:
-#                 self.scope.node[self.currentType.name] = [node]
-#         else:
-#             try:
-#                 self.scope.node[None].append(node)
-#             except:
-#                 self.scope.node[None] = [node]
-#         for param in node.parameters:
-#             arg, type_att = list(param.keys())[0].id, list(param.values())[0]
-#             scope.define_variable(arg, type_att)
-
-#     @visitor.when(FunctionCallNode)
-#     def visit(
-#         self, node: FunctionCallNode, scope: Scope = None, Context: Context = None
-#     ):
-#         if self.currentType:
-#             function = list(
-#                 filter(
-#                     lambda x: len(x.parameters) == len(node.args),
-#                     scope.node[self.currentType.name],
-#                 )
-#             )[0]
-#         else:
-#             function = list(
-#                 filter(
-#                     lambda x: len(x.parameters) == len(node.args),
-#                     scope.node[None],
-#                 )
-#             )[0]
-
-#         for i, param in enumerate(function.parameters):
-#             scope.asign_variable(
-#                 list(param.keys())[0].id, self.visit(node.args[i], scope, Context)
-#             )
-#         ret = None
-#         for statment in function.body:
-#             ret = self.visit(statment, scope, Context)
-#         return ret
-
-#     @visitor.when(IfStructureNode)
-#     def visit(
-#         self, node: IfStructureNode, scope: Scope = None, Context: Context = None
-#     ):
-#         condition = self.visit(node.condition, scope, Context)
-#         ret = None
-#         if condition:
-#             inner_scope = scope.create_child()
-#             for statments in node.body:
-#                 ret = self.visit(statments, inner_scope, Context)
-#         elif node._elif:
-#             for elif_node in node._elif:
-#                 elif_condition = self.visit(elif_node.condition, scope, Context)
-#                 inner_scope = scope.create_child()
-#                 if elif_condition:
-#                     for statments in elif_node.body:
-#                         ret = self.visit(statments, inner_scope, Context)
-
-#                     break
-#             else:
-#                 if node._else:
-#                     inner_scope = scope.create_child()
-#                     for statments in node._else.body:
-#                         ret = self.visit(statments, inner_scope, Context)
-#         else:
-#             if node._else:
-#                 inner_scope = scope.create_child()
-#                 for statments in node._else.body:
-#                     ret = self.visit(statments, inner_scope, Context)
-
-#         return ret
-
-#     @visitor.when(WhileStructureNode)
-#     def visit(
-#         self, node: WhileStructureNode, scope: Scope = None, Context: Context = None
-#     ):
-#         ret = None
-#         while self.visit(node.condition, scope, Context):
-#             for statment in node.body:
-#                 ret = self.visit(statment, scope, Context)
-#         return ret
-
-#     @visitor.when(IdentifierNode)
-#     def visit(self, node: IdentifierNode, scope: Scope = None, Context: Context = None):
-#         return scope.get_variable(node.id)
-
-#     @visitor.when(ForStructureNode)
-#     def visit(
-#         self, node: ForStructureNode, scope: Scope = None, Context: Context = None
-#     ):
-#         self.visit(node.init_assigments, scope, Context)
-#         ret = None
-#         while self.visit(node.condition, scope, Context):
-#             for statment in node.body:
-#                 ret = self.visit(statment, scope, Context)
-#                 self.visit(node.increment_condition, scope, Context)
-#         return ret
-
-#     @visitor.when(BoolIsTypeNode)
-#     def visit(self, node: BoolIsTypeNode, scope: Scope = None, Context: Context = None):
-#         value = self.visit(node.left, scope, Context)
-#         return isinstance(value, node.right)
-
-#     @visitor.when(BoolAndNode)
-#     def visit(self, node: BoolAndNode, scope: Scope = None, Context: Context = None):
-#         left_value = self.visit(node.left, scope, Context)
-#         right_value = self.visit(node.right, scope, Context)
-#         return left_value and right_value
-
-#     @visitor.when(BoolOrNode)
-#     def visit(self, node: BoolOrNode, scope: Scope = None, Context: Context = None):
-#         left_value = self.visit(node.left, scope, Context)
-#         right_value = self.visit(node.right, scope, Context)
-#         return left_value or right_value
-
-#     @visitor.when(BoolNotNode)
-#     def visit(self, node: BoolNotNode, scope: Scope = None, Context: Context = None):
-#         value = self.visit(node.node, scope, Context)
-#         return not value
-
-#     @visitor.when(BoolCompLessNode)
-#     def visit(
-#         self, node: BoolCompLessNode, scope: Scope = None, Context: Context = None
-#     ):
-#         left_value = self.visit(node.left, scope, Context)
-#         right_value = self.visit(node.right, scope, Context)
-#         return left_value < right_value
-
-#     @visitor.when(BoolCompGreaterNode)
-#     def visit(
-#         self, node: BoolCompGreaterNode, scope: Scope = None, Context: Context = None
-#     ):
-#         left_value = self.visit(node.left, scope, Context)
-#         right_value = self.visit(node.right, scope, Context)
-#         return left_value > right_value
-
-#     @visitor.when(BooleanNode)
-#     def visit(self, node: BooleanNode, scope: Scope = None, Context: Context = None):
-#         return node.value
-
-#     @visitor.when(BoolCompLessEqualNode)
-#     def visit(
-#         self, node: BoolCompLessEqualNode, scope: Scope = None, Context: Context = None
-#     ):
-#         left_value = self.visit(node.left, scope, Context)
-#         right_value = self.visit(node.right, scope, Context)
-#         return left_value <= right_value
-
-#     @visitor.when(BoolCompGreaterEqualNode)
-#     def visit(
-#         self,
-#         node: BoolCompGreaterEqualNode,
-#         scope: Scope = None,
-#         Context: Context = None,
-#     ):
-#         left_value = self.visit(node.left, scope, Context)
-#         right_value = self.visit(node.right, scope, Context)
-#         return left_value >= right_value
-
-#     @visitor.when(BoolCompEqualNode)
-#     def visit(
-#         self, node: BoolCompEqualNode, scope: Scope = None, Context: Context = None
-#     ):
-#         left_value = self.visit(node.left, scope, Context)
-#         right_value = self.visit(node.right, scope, Context)
-#         return left_value == right_value
-
-#     @visitor.when(BoolCompNotEqualNode)
-#     def visit(
-#         self, node: BoolCompNotEqualNode, scope: Scope = None, Context: Context = None
-#     ):
-#         left_value = self.visit(node.left)
-#         right_value = self.visit(node.right)
-#         return left_value != right_value
-
-#     @visitor.when(PlusExpressionNode)
-#     def visit(
-#         self, node: PlusExpressionNode, scope: Scope = None, Context: Context = None
-#     ):
-#         iner_scope_left = scope.create_child()
-#         left_value = self.visit(node.expression_1, iner_scope_left, Context)
-#         iner_scope_right = scope.create_child()
-#         right_value = self.visit(node.expression_2, iner_scope_right, Context)
-#         return left_value + right_value
-
-#     @visitor.when(SubsExpressionNode)
-#     def visit(
-#         self, node: SubsExpressionNode, scope: Scope = None, Context: Context = None
-#     ):
-#         iner_scope_left = scope.create_child()
-#         left_value = self.visit(node.expression_1, iner_scope_left, Context)
-#         iner_scope_right = scope.create_child()
-#         right_value = self.visit(node.expression_2, iner_scope_right, Context)
-#         return left_value - right_value
-
-#     @visitor.when(DivExpressionNode)
-#     def visit(
-#         self, node: DivExpressionNode, scope: Scope = None, Context: Context = None
-#     ):
-#         iner_scope_left = scope.create_child()
-#         left_value = self.visit(node.expression_1, iner_scope_left, Context)
-#         iner_scope_right = scope.create_child()
-#         right_value = self.visit(node.expression_2, iner_scope_right, Context)
-#         return left_value / right_value
-
-#     @visitor.when(MultExpressionNode)
-#     def visit(
-#         self, node: MultExpressionNode, scope: Scope = None, Context: Context = None
-#     ):
-#         iner_scope_left = scope.create_child()
-#         left_value = self.visit(node.expression_1, iner_scope_left, Context)
-#         iner_scope_right = scope.create_child()
-#         right_value = self.visit(node.expression_2, iner_scope_right, Context)
-#         return left_value * right_value
-
-#     @visitor.when(ModExpressionNode)
-#     def visit(
-#         self, node: ModExpressionNode, scope: Scope = None, Context: Context = None
-#     ):
-#         iner_scope_left = scope.create_child()
-#         left_value = self.visit(node.expression_1, iner_scope_left, Context)
-#         iner_scope_right = scope.create_child()
-#         right_value = self.visit(node.expression_2, iner_scope_right, Context)
-#         return left_value % right_value
-
-#     @visitor.when(PowExpressionNode)
-#     def visit(
-#         self, node: PowExpressionNode, scope: Scope = None, Context: Context = None
-#     ):
-#         iner_scope_left = scope.create_child()
-#         left_value = self.visit(node.expression_1, iner_scope_left, Context)
-#         iner_scope_right = scope.create_child()
-#         right_value = self.visit(node.expression_2, iner_scope_right, Context)
-#         return left_value**right_value
-
-#     @visitor.when(SqrtMathNode)
-#     def visit(self, node: SqrtMathNode, scope: Scope = None, Context: Context = None):
-#         iner_scope = scope.create_child()
-#         expression_value = self.visit(node.node, iner_scope, Context)
-#         return math.sqrt(expression_value)
-
-#     @visitor.when(SinMathNode)
-#     def visit(self, node: SinMathNode, scope: Scope = None, Context: Context = None):
-#         expression_value = self.visit(node.node, scope, Context)
-#         try:
-#             return math.sin(expression_value)
-#         except:
-#             raise Exception(
-#                 f"La función requerida sin no está definida en {expression_value}."
-#             )
-
-#     @visitor.when(CosMathNode)
-#     def visit(self, node: CosMathNode, scope: Scope = None, Context: Context = None):
-#         expression_value = self.visit(node.node, scope, Context)
-#         try:
-#             return math.cos(expression_value)
-#         except:
-#             raise Exception(
-#                 f"La función requerida cos no está definida en {expression_value}."
-#             )
-
-#     @visitor.when(TanMathNode)
-#     def visit(self, node: TanMathNode, scope: Scope = None, Context: Context = None):
-#         expression_value = self.visit(node.node, scope, Context)
-#         try:
-#             return math.tan(expression_value)
-#         except:
-#             raise Exception(
-#                 f"La función requerida tan no está definida en {expression_value}."
-#             )
-
-#     @visitor.when(ExpMathNode)
-#     def visit(self, node: ExpMathNode, scope: Scope = None, Context: Context = None):
-#         expression_value = self.visit(node.node, scope, Context)
-#         return math.exp(expression_value)
-
-#     @visitor.when(RandomFunctionCallNode)
-#     def visit(
-#         self, node: RandomFunctionCallNode, scope: Scope = None, Context: Context = None
-#     ):
-#         return random.random()
-
-#     @visitor.when(LogFunctionCallNode)
-#     def visit(
-#         self, node: LogFunctionCallNode, scope: Scope = None, Context: Context = None
-#     ):
-#         base_value = self.visit(node.base, scope, Context)
-#         expression_value = self.visit(node.expression, scope, Context)
-#         try:
-#             return math.log(expression_value, base_value)
-#         except ValueError:
-#             # Lanzar un error personalizado indicando que el logaritmo no está definido para los valores dados
-#             raise Exception(
-#                 "El logaritmo no está definido para los valores proporcionados."
-#             )
-#         except Exception as e:
-#             # Captura cualquier otro tipo de excepción y lanza un error personalizado
-#             raise Exception(
-#                 f"Ocurrió un error inesperado al intentar calcular el logaritmo: {e}."
-#             )
-
-#     @visitor.when(StringConcatNode)
-#     def visit(
-#         self, node: StringConcatNode, scope: Scope = None, Context: Context = None
-#     ):
-#         left_value = self.visit(node.left, scope, Context)
-#         right_value = self.visit(node.right, scope, Context)
-#         return str(left_value) + str(right_value)
-
-#     @visitor.when(StringConcatWithSpaceNode)
-#     def visit(
-#         self,
-#         node: StringConcatWithSpaceNode,
-#         scope: Scope = None,
-#         Context: Context = None,
-#     ):
-#         left_value = self.visit(node.left, scope, Context)
-#         right_value = self.visit(node.right, scope, Context)
-#         return str(left_value) + " " + str(right_value)
+    @visitor.when(MemberAccessNode)
+    def visit(self, node: MemberAccessNode, scope: InterpreterScope):
+        type, value = self.visit(node.base_object, scope)
+        # self.currentType = self.context.get_type(base_object_type.name)
