@@ -6,7 +6,7 @@ function operate(x :number, y: number) {
     print(x / y);
 }
 function fib(n: number):number => if (n == 0 or n == 1) {1;} else {fib(n - 1) + fib(n - 2);}
-print(fib(9));
+//print(fib(9));
 function fact(x:number):number => let f = 1 in for (let i = 1; i <= x; i:= i + 1) {f := f * i;};
 print(fact(5));
 function gcd(a: number , b: number):number => while (b > 0){
@@ -18,6 +18,7 @@ function gcd(a: number , b: number):number => while (b > 0){
     };
 
 print(gcd(5,3));
+
 
 type Range(min:number, max:number) {
     self.min = min;
@@ -86,11 +87,7 @@ type C inherits A {
         print(sin(PI/2));
         print("Hello World");
     }
-
-
     print(tan(PI) ** 2 + cot(PI) ** 2);
-
-    
     let a = 10 in while (a >= 0) {
     print(a);
     a := a - 1;
@@ -120,5 +117,4 @@ type C inherits A {
         );
     let x = 42 in print(x);
        let total = { print("Total"); 5; } + 6 in print(total);
-
 }

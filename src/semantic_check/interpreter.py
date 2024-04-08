@@ -20,11 +20,23 @@ class InstanceType:
         self.attrs: dict[str, object] = attrs
         self.parent = parent
 
-    def get_attribute(self, name):
+    def get_attribute_value(self, name):
         for k, v in self.attrs.items():
             if k == name:
                 return v.type, v.value
-        return self.parent.get_attribute(name) if self.parent is not None else None
+        return (
+            self.parent.get_attribute_value(name) if self.parent is not None else None
+        )
+
+    def set_attribute_value(self, name, value):
+        try:
+            self.attrs[name] = value
+        except:
+            return (
+                self.parent.set_attribute_value(name, value)
+                if self.parent is not None
+                else None
+            )
 
     def __str__(self):
         return f'{self.type}({", ".join([f"{k}: {v.value}" for k, v in self.attrs.items()])})'
@@ -130,6 +142,10 @@ class TreeInterpreter:
         type, value = self.visit(node.expression, scope)
         scope.set_variable_value(node.id.id, value)
 
+        if isinstance(node.id, SelfNode):
+            self_current = AttributeInstance(node.id.id.id, type, value)
+            self.currentInstance.set_attribute_value(node.id.id.id, self_current)
+
         return type, value
 
     @visitor.when(TypeNode)
@@ -217,7 +233,10 @@ class TreeInterpreter:
     @visitor.when(BoolNotNode)
     def visit(self, node: BoolNotNode, scope: InterpreterScope):
         _, value = self.visit(node.node, scope)
-        return self.context.get_type("bool"), not value
+        try:
+            return self.context.get_type("bool"), not value
+        except:
+            raise Exception(f"El valor debe ser booleano. location {node.location}")
 
     @visitor.when(BoolCompLessNode)
     def visit(self, node: BoolCompLessNode, scope: InterpreterScope):
@@ -399,10 +418,6 @@ class TreeInterpreter:
                 f"No es posible concatenar los elementos. location : {node.location}"
             )
 
-    @visitor.when(PINode)
-    def visit(self, node: PINode, scope: InterpreterScope):
-        return self.context.get_type("number"), math.pi
-
     # _______Bloque-3________________________________________________________________________________________________________________________________________________________________________
 
     @visitor.when(LetInExpressionNode)
@@ -495,7 +510,7 @@ class TreeInterpreter:
     @visitor.when(MemberAccessNode)
     def visit(self, node: MemberAccessNode, scope: InterpreterScope):
         type_base, value = self.visit(node.base_object, scope)
-        self.current_instance = value
+        self.currentInstance = value
 
         method = type_base.get_method(node.object_property_to_acces.id)
 
@@ -507,9 +522,44 @@ class TreeInterpreter:
             )
 
         type_result, value_result = self.visit(method.body, inner_scope)
-        self.current_instance = None
+        self.currentInstance = None
         return type_result, value_result
 
     @visitor.when(SelfNode)
     def visit(self, node: SelfNode, scope: InterpreterScope):
-        return self.current_instance.get_attribute(node.id.id)
+        return self.currentInstance.get_attribute_value(node.id.id)
+
+    @visitor.when(InheritanceNode)
+    def visit(self, node: InheritanceNode, scope):
+        pass
+
+    @visitor.when(BlockNode)
+    def visit(self, node: BlockNode, scope: InterpreterScope):
+        inner_scope = scope.create_child()
+        result = self.context.get_type("any"), None
+        for expression in node.list_non_create_statemnet:
+            result = self.visit(expression, inner_scope)
+
+        return result
+
+    @visitor.when(BoolAndNode)
+    def visit(self, node: BoolAndNode, scope: InterpreterScope):
+        _, left = self.visit(node.left, scope)
+        _, right = self.visit(node.right, scope)
+        try:
+            return self.context.get_type("bool"), left and right
+        except:
+            raise Exception(
+                f"Las operaciones logica se realizan solo entre elementos booleanos."
+            )
+
+    @visitor.when(BoolOrNode)
+    def visit(self, node: BoolOrNode, scope: InterpreterScope):
+        _, left = self.visit(node.left, scope)
+        _, right = self.visit(node.right, scope)
+        try:
+            return self.context.get_type("bool"), left or right
+        except:
+            raise Exception(
+                f"Las operaciones logica se realizan solo entre elementos booleanos."
+            )
