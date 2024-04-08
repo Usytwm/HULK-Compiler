@@ -114,33 +114,36 @@ collection, destroy_collection, selfExpr = G.NonTerminals(
     "collection destroy_collection selfExpr"
 )
 self_access = G.NonTerminal("self_access")
+list_non_create_statement = G.NonTerminal("list_non_create_statement")
 
 Program %= statement_list, lambda h, s: ProgramNode(s[1])
 statement_list %= statement + statement_list, lambda h, s: [s[1]] + s[2]
-statement_list %= (
-    oBrace + statement_list + cBrace + statement_list,
-    lambda h, s: s[2] + s[4],
-)
 statement_list %= G.Epsilon, lambda h, s: []
 
 statement %= non_create_statement, lambda h, s: s[1]
 statement %= create_statement, lambda h, s: s[1]
 
+list_non_create_statement %= (
+    non_create_statement + list_non_create_statement,
+    lambda h, s: [s[1]] + s[2],
+)
+list_non_create_statement %= G.Epsilon, lambda h, s: []
+
 non_create_statement %= control_structure, lambda h, s: s[1]
 non_create_statement %= expr_statement + Semi, lambda h, s: s[1]
-# non_create_statement %= expr_statementWithoutSemi, lambda h, s: s[1]
+non_create_statement %= assignment + Semi, lambda h, s: s[1]
 
-create_statement %= assignment + Semi, lambda h, s: s[1]
+non_create_statement %= destroy_collection + Semi, lambda h, s: s[1]
+non_create_statement %= oBrace + list_non_create_statement + cBrace, lambda h, s: s[2]
+
 create_statement %= type_definition, lambda h, s: s[1]
 create_statement %= function_definition, lambda h, s: s[1]
-create_statement %= destroy_collection + Semi, lambda h, s: s[1]
 
 # factor %= assignment + In + expr_statement, lambda h, s: LetInExpressionNode(s[1], s[3])
 expr_statement %= assignment + In + expr_statement, lambda h, s: LetInExpressionNode(
     s[1], s[3], s[2]
 )  # Ya
 expr_statement %= expression, lambda h, s: s[1]
-
 
 print_statement %= Print + oPar + expr_statement + cPar, lambda h, s: PrintStatmentNode(
     s[3], s[1]
@@ -156,7 +159,7 @@ if_structure %= (
     + expression
     + cPar
     + oBrace
-    + statement_list
+    + list_non_create_statement
     + cBrace
     + contElif
     + contElse,
@@ -164,7 +167,14 @@ if_structure %= (
 )  # Ya
 
 contElif %= (
-    Elif + oPar + expression + cPar + oBrace + statement_list + cBrace + contElif,
+    Elif
+    + oPar
+    + expression
+    + cPar
+    + oBrace
+    + list_non_create_statement
+    + cBrace
+    + contElif,
     lambda h, s: [ElifStructureNode(s[1], s[3], s[6])] + s[8],
 )  # Ya
 contElif %= G.Epsilon, lambda h, s: []
@@ -175,7 +185,7 @@ contElse %= Else + oBrace + statement_list + cBrace, lambda h, s: ElseStructureN
 contElse %= G.Epsilon, lambda h, s: ElseStructureNode([])  # Ya
 
 while_structure %= (
-    While + oPar + expression + cPar + oBrace + statement_list + cBrace,
+    While + oPar + expression + cPar + oBrace + list_non_create_statement + cBrace,
     lambda h, s: WhileStructureNode(s[3], s[6], s[1]),
 )  # Ya
 for_assignment = G.NonTerminal("for_assignment")
@@ -193,7 +203,7 @@ for_structure %= (
     + destroy_collection
     + cPar
     + oBrace
-    + statement_list
+    + list_non_create_statement
     + cBrace,
     lambda h, s: ForStructureNode(s[3], s[5], s[7], s[10], s[1]),
 )  # Ya
@@ -236,7 +246,7 @@ function_definition %= (
     + cPar
     + type_annotation
     + oBrace
-    + statement_list
+    + list_non_create_statement
     + cBrace,
     lambda h, s: FunctionDefinitionNode(IdentifierNode(s[2]), s[6], s[4], s[8]),
 )  # Ya
@@ -255,8 +265,10 @@ function_definition %= (
 parameters %= (
     identifier + type_annotation + Comma + parameters,
     lambda h, s: [{IdentifierNode(s[1]): s[2]}] + s[4],
-)
-parameters %= identifier + type_annotation, lambda h, s: [{IdentifierNode(s[1]): s[2]}]
+)  # Ya
+parameters %= identifier + type_annotation, lambda h, s: [
+    {IdentifierNode(s[1]): s[2]}
+]  # Ya
 parameters %= G.Epsilon, lambda h, s: []
 
 type_annotation %= Colon + identifier, lambda h, s: TypeNode(s[2])  # Ya
@@ -340,7 +352,7 @@ factor %= identifier, lambda h, s: IdentifierNode(s[1])  # Ya
 factor %= control_structure, lambda h, s: s[1]
 factor %= oPar + assignment + cPar, lambda h, s: s[2]
 factor %= oPar + destroy_collection + cPar, lambda h, s: s[2]
-factor %= oBrace + statement_list + cBrace, lambda h, s: CollectionNode(s[2])
+factor %= oBrace + list_non_create_statement + cBrace, lambda h, s: CollectionNode(s[2])
 factor %= print_statement, lambda h, s: s[1]
 
 factor %= math_call, lambda h, s: s[1]
@@ -416,7 +428,7 @@ method_definition %= (
     + cPar
     + type_annotation
     + oBrace
-    + statement_list
+    + list_non_create_statement
     + cBrace
     + method_definition,
     lambda h, s: [FunctionDefinitionNode(IdentifierNode(s[1]), s[5], s[3], s[7])]

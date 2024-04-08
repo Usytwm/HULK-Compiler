@@ -65,6 +65,12 @@ class IdentifierNode(Node):
         super().__init__(token)
 
 
+class BlockNode(Node):
+    def __init__(self, list_non_create_statemnet: List) -> None:
+        super().__init__()
+        self.list_non_create_statemnet = list_non_create_statemnet
+
+
 class SelfNode(Node):
     def __init__(self, identifier, token) -> None:
         super().__init__(token)

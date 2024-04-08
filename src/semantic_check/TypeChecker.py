@@ -674,6 +674,16 @@ class TypeCheckerVisitor:
             )
             return self.context.get_type("any")
 
+    @visitor.when(BlockNode)
+    def visit(self, node: BlockNode, scope: Scope):
+        inner_scope = scope.create_child()
+        inner_type = self.context.get_type("any")
+
+        for expression in node.list_non_create_statemnet:
+            inner_type = self.visit(expression, inner_scope)
+
+        return inner_type
+
     @visitor.when(StringNode)
     def visit(self, node: StringNode, scope):
         print("OnStringNode")
