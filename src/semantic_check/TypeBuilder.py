@@ -27,14 +27,14 @@ class TypeBuilderVisitor:
             if inheritance.conforms_to(self.currentType.name):
                 self.errors.append(
                     SemanticError(
-                        f"Dependencias circulares. El tipo {node.id.id} hereda de el tipo {node.inheritance.type.id}. Linea:{node.location[0]} , Columna:{node.location[1]}"
+                        f"Dependencias circulares. El tipo {node.id.id} hereda de el tipo {node.inheritance.type.id}. --> row:{node.location[0]}, col:{node.location[1]}"
                     )
                 )
                 inheritance = self.context.get_type("object")
         except:
             self.errors.append(
                 SemanticError(
-                    f"El tipo {str(node.inheritance.type.id)} del que se hereda no esta definido. Linea:{node.location[0]}"
+                    f"El tipo {str(node.inheritance.type.id)} del que se hereda no esta definido. --> row:{node.inheritance.location[0]}, col:{node.inheritance.location[1]}"
                 )
             )
             inheritance = self.context.get_type("object")
@@ -49,12 +49,20 @@ class TypeBuilderVisitor:
                 type = self.context.get_type(type.type)
             except:
                 type = self.context.get_type("object")
-                self.errors.append(f"El tipo del argumento {name.id} no esta definido.")
+                self.errors.append(
+                    SemanticError(
+                        f"El tipo del argumento {name.id} no esta definido. --> row:{type.location[0]}, col:{type.location[1]}"
+                    )
+                )
 
             try:
                 self.currentType.define_arg(name.id, type)
             except:
-                self.errors.append(f"Existenten dos argumentos con el nombre {name.id}")
+                self.errors.append(
+                    SemanticError(
+                        f"Existenten dos argumentos con el nombre {name.id} --> row:{name.location[0]}, col:{name.location[1]}"
+                    )
+                )
 
         for attrDef in node.attributes:
             self.visit(attrDef)
@@ -74,7 +82,7 @@ class TypeBuilderVisitor:
             except:
                 self.errors.append(
                     SemanticError(
-                        f"El atributo {node.id.id} ya esta definido. Linea:{node.location[0]} , Columna:{node.location[1]}"
+                        f"El atributo {node.id.id} ya esta definido. --> row:{node.location[0]}, col:{node.location[1]}"
                     )
                 )
 
@@ -85,7 +93,9 @@ class TypeBuilderVisitor:
             return_type = self.context.get_type(type_annotation.type)
         except:
             self.errors.append(
-                f"El tipo de retorno {node.type_annotation.type} no esta definido"
+                SemanticError(
+                    f"El tipo de retorno {node.type_annotation.type} no esta definido. --> row:{node.type_annotation.location[0]}, col:{node.type_annotation.location[1]}"
+                )
             )
             return_type = self.context.get_type("object")
 
@@ -102,7 +112,7 @@ class TypeBuilderVisitor:
             except:
                 self.errors.append(
                     SemanticError(
-                        f"El tipo del parametro {parama[0].id} que se le pasa a la funcion {node.id.id} no esta definido. Linea:{node.location[0]} "
+                        f"El tipo del parametro {parama[0].id} que se le pasa a la funcion {node.id.id} no esta definido. --> row:{parama[1].location[0]}, col:{parama[1].location[1]} "
                     )
                 )
                 arg_types.append(self.context.get_type("object"))
@@ -115,7 +125,7 @@ class TypeBuilderVisitor:
             except:
                 self.errors.append(
                     SemanticError(
-                        f"La funcion {node.id.id} ya existe en el contexto de {self.currentType.name}. Linea:{node.location[0]} , Columna:{node.location[1]}"
+                        f"La funcion {node.id.id} ya existe en el contexto de {self.currentType.name}. --> row:{node.location[0]}, col:{node.location[1]}"
                     )
                 )
 
