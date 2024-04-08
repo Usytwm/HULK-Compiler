@@ -16,14 +16,11 @@ class TypeCheckerVisitor:
 
     @visitor.on("node")
     def visit(self, node, scope):
-        print(f"OnGeneric: {type(node)}")
         pass
 
     @visitor.when(ProgramNode)
     def visit(self, node: ProgramNode):
-        print("OnProgram (Checker)")
         for statment in node.statments:
-            print(f"Statement (Checker): {statment}")
             self.visit(statment, self.scope)
 
     @visitor.when(PrintStatmentNode)
@@ -106,15 +103,12 @@ class TypeCheckerVisitor:
                 )
                 return_type = self.context.get_type("object")
 
-            # print(node.parameters)
             arg_names: List[IdentifierNode] = [
                 list(parama.items())[0] for parama in node.parameters
             ]
             arg_names = [name[0].id for name in arg_names]
-            # print(arg_names)
             arg_types = []
             aux = [list(parama.items())[0] for parama in node.parameters]
-            # print(aux)
             for parama in aux:
                 try:
                     arg_types.append(self.context.get_type(parama[1].type))
@@ -354,8 +348,6 @@ class TypeCheckerVisitor:
                 return self.context.get_type("any")
 
             correct = True
-            # Si la cantidad de parametros es correcta se verifica si los tipos de los parametros suministrados son correctos
-            # Luego por cada parametro suministrado se verifica si el tipo del parametro suministrado es igual al tipo del parametro de la funcion
             for i in range(len(node.args)):
                 if not self.visit(node.args[i], scope).conforms_to(
                     method.param_types[i].name
@@ -394,18 +386,15 @@ class TypeCheckerVisitor:
 
     @visitor.when(AritmeticExpression)
     def visit(self, node: AritmeticExpression, scope: Scope):
-        print("OnAritmeticExpressionNode")
         type_1: Type = self.visit(node.expression_1, scope)
-        print(f"type 1: {type_1}")
         type_2: Type = self.visit(node.expression_2, scope)
-        print(f"type 2: {type_2}")
 
         if not type_1.conforms_to("number") or not type_2.conforms_to("number"):
             self.errors.append(
                 SemanticError(
                     f"Solo se pueden emplear aritmeticos entre expresiones aritmeticas. Linea:{node.location[0]} , Columna:{node.location[1]}"
                 )
-            )  # TODO
+            )
             return self.context.get_type("any")
 
         return type_1
@@ -602,7 +591,6 @@ class TypeCheckerVisitor:
 
     @visitor.when(NumberNode)
     def visit(self, node: NumberNode, scope):
-        print("OnNumberNode")
         try:
             a: float = float(node.value)
             return self.context.get_type("number")
@@ -625,9 +613,6 @@ class TypeCheckerVisitor:
                 return self.context.get_type("any")
 
             correct = True
-            # print("bkadjgiu")
-            # x = [type(parama) for parama in ret_type.args]
-            # print(x)
             arg_types = [parama.type for parama in ret_type.args]
             arg_names = [parama.name for parama in ret_type.args]
             for i, arg in enumerate(arg_types):
@@ -686,7 +671,6 @@ class TypeCheckerVisitor:
 
     @visitor.when(StringNode)
     def visit(self, node: StringNode, scope):
-        print("OnStringNode")
         try:
             string = str(node.value)
             return self.context.get_type("string")
