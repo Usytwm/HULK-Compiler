@@ -142,15 +142,14 @@ non_create_statement %= (
 create_statement %= type_definition, lambda h, s: s[1]
 create_statement %= function_definition, lambda h, s: s[1]
 
-# factor %= assignment + In + expr_statement, lambda h, s: LetInExpressionNode(s[1], s[3])
 expr_statement %= assignment + In + expr_statement, lambda h, s: LetInExpressionNode(
     s[1], s[3], s[2]
-)  # Ya
+)
 expr_statement %= expression, lambda h, s: s[1]
 
 print_statement %= Print + oPar + expr_statement + cPar, lambda h, s: PrintStatmentNode(
     s[3], s[1]
-)  # Ya
+)
 
 control_structure %= if_structure, lambda h, s: s[1]
 control_structure %= while_structure, lambda h, s: s[1]
@@ -167,7 +166,7 @@ if_structure %= (
     + contElif
     + contElse,
     lambda h, s: IfStructureNode(s[3], s[6], s[8], s[9], s[1]),
-)  # Ya
+)
 
 contElif %= (
     Elif
@@ -179,18 +178,18 @@ contElif %= (
     + cBrace
     + contElif,
     lambda h, s: [ElifStructureNode(s[1], s[3], s[6])] + s[8],
-)  # Ya
+)
 contElif %= G.Epsilon, lambda h, s: []
 
 contElse %= Else + oBrace + statement_list + cBrace, lambda h, s: ElseStructureNode(
     s[3], s[1]
-)  # Ya
-contElse %= G.Epsilon, lambda h, s: ElseStructureNode([])  # Ya
+)
+contElse %= G.Epsilon, lambda h, s: ElseStructureNode([])
 
 while_structure %= (
     While + oPar + expression + cPar + oBrace + list_non_create_statement + cBrace,
     lambda h, s: WhileStructureNode(s[3], s[6], s[1]),
-)  # Ya
+)
 for_assignment = G.NonTerminal("for_assignment")
 for_assignment %= G.Epsilon, lambda h, s: CollectionNode([])
 for_assignment %= assignment, lambda h, s: s[1]
@@ -209,7 +208,7 @@ for_structure %= (
     + list_non_create_statement
     + cBrace,
     lambda h, s: ForStructureNode(s[3], s[5], s[7], s[10], s[1]),
-)  # Ya
+)
 
 assignment %= Let + multi_assignment, lambda h, s: CollectionNode(s[2])
 multi_assignment %= (
@@ -219,27 +218,27 @@ multi_assignment %= (
 multi_assignment %= kern_assignment, lambda h, s: [s[1]]
 kern_assignment %= identifier + Equal + expr_statement, lambda h, s: KernAssigmentNode(
     IdentifierNode(s[1]), s[3], s[1]
-)  # Ya
+)
 kern_assignment %= self_access + Equal + expr_statement, lambda h, s: KernAssigmentNode(
     IdentifierNode(s[1]), s[3], s[1]
-)  # Ya
+)
 
 
 destroy_collection %= destructive_assignment, lambda h, s: CollectionNode(s[1])
 destructive_assignment %= (
     self_access + Destroy + expression + Comma + destructive_assignment,
     lambda h, s: [DestroyNode(s[1], s[3], s[1])] + s[4],
-)  # Ya
+)
 destructive_assignment %= (
     identifier + Destroy + expression + Comma + destructive_assignment,
     lambda h, s: [DestroyNode(IdentifierNode(s[1]), s[3], s[1])] + s[4],
-)  # Ya
+)
 destructive_assignment %= self_access + Destroy + expression, lambda h, s: [
     DestroyNode(s[1], s[3], s[1])
-]  # Ya
+]
 destructive_assignment %= identifier + Destroy + expression, lambda h, s: [
     DestroyNode(IdentifierNode(s[1]), s[3], s[1])
-]  # Ya
+]
 
 function_definition %= (
     Function
@@ -252,7 +251,7 @@ function_definition %= (
     + list_non_create_statement
     + cBrace,
     lambda h, s: FunctionDefinitionNode(IdentifierNode(s[2]), s[6], s[4], s[8]),
-)  # Ya
+)
 function_definition %= (
     Function
     + identifier
@@ -268,14 +267,12 @@ function_definition %= (
 parameters %= (
     identifier + type_annotation + Comma + parameters,
     lambda h, s: [{IdentifierNode(s[1]): s[2]}] + s[4],
-)  # Ya
-parameters %= identifier + type_annotation, lambda h, s: [
-    {IdentifierNode(s[1]): s[2]}
-]  # Ya
+)
+parameters %= identifier + type_annotation, lambda h, s: [{IdentifierNode(s[1]): s[2]}]
 parameters %= G.Epsilon, lambda h, s: []
 
-type_annotation %= Colon + identifier, lambda h, s: TypeNode(s[2])  # Ya
-type_annotation %= G.Epsilon, lambda h, s: TypeNode("object")  # Ya
+type_annotation %= Colon + identifier, lambda h, s: TypeNode(s[2])
+type_annotation %= G.Epsilon, lambda h, s: TypeNode("object")
 
 ExprAnd, ExprNeg, ExprIsType, ExprComp, ExprNum, ExprOr = G.NonTerminals(
     "ExprAnd ExprNeg ExprIsType ExprComp ExprNum ExprOr"
@@ -284,19 +281,19 @@ ExprAnd, ExprNeg, ExprIsType, ExprComp, ExprNum, ExprOr = G.NonTerminals(
 expression %= ExprOr, lambda h, s: s[1]
 expression %= expression + arroba2 + ExprOr, lambda h, s: StringConcatWithSpaceNode(
     s[1], s[3], s[2]
-)  # Ya
+)
 expression %= expression + arroba + ExprOr, lambda h, s: StringConcatNode(
     s[1], s[3], s[2]
-)  # Ya
+)
 
 
 ExprOr %= ExprAnd, lambda h, s: s[1]
-ExprOr %= ExprOr + Or + ExprAnd, lambda h, s: BoolOrNode(s[1], s[3], s[2])  # Ya
+ExprOr %= ExprOr + Or + ExprAnd, lambda h, s: BoolOrNode(s[1], s[3], s[2])
 
 ExprAnd %= ExprNeg, lambda h, s: s[1]
-ExprAnd %= ExprAnd + And + ExprNeg, lambda h, s: BoolAndNode(s[1], s[3], s[2])  # Ya
+ExprAnd %= ExprAnd + And + ExprNeg, lambda h, s: BoolAndNode(s[1], s[3], s[2])
 ExprNeg %= ExprIsType, lambda h, s: s[1]
-ExprNeg %= Not + ExprIsType, lambda h, s: BoolNotNode(s[2], s[1])  # Ya
+ExprNeg %= Not + ExprIsType, lambda h, s: BoolNotNode(s[2], s[1])
 
 ExprIsType %= ExprComp, lambda h, s: s[1]
 ExprIsType %= ExprComp + Is + identifier, lambda h, s: BoolIsTypeNode(
@@ -344,14 +341,14 @@ factorPow %= factor + PowStar + factorPow, lambda h, s: PowExpressionNode(
 )  # Y
 
 factor %= oPar + expr_statement + cPar, lambda h, s: s[2]
-factor %= number, lambda h, s: NumberNode(s[1])  # Ya
-factor %= string, lambda h, s: StringNode(s[1])  # Ya
-factor %= False_, lambda h, s: BooleanNode(s[1])  # Ya
-factor %= True_, lambda h, s: BooleanNode(s[1])  # Ya
+factor %= number, lambda h, s: NumberNode(s[1])
+factor %= string, lambda h, s: StringNode(s[1])
+factor %= False_, lambda h, s: BooleanNode(s[1])
+factor %= True_, lambda h, s: BooleanNode(s[1])
 factor %= identifier + oPar + arguments + cPar, lambda h, s: FunctionCallNode(
     s[1], s[3]
-)  # Ya
-factor %= identifier, lambda h, s: IdentifierNode(s[1])  # Ya
+)
+factor %= identifier, lambda h, s: IdentifierNode(s[1])
 factor %= control_structure, lambda h, s: s[1]
 factor %= oPar + assignment + cPar, lambda h, s: s[2]
 factor %= oPar + destroy_collection + cPar, lambda h, s: s[2]
@@ -366,26 +363,26 @@ factor %= kern_instance_creation, lambda h, s: s[1]
 member_access %= (
     factor + Dot + identifier + oPar + arguments + cPar,
     lambda h, s: MemberAccessNode(s[1], IdentifierNode(s[3]), s[5]),
-)  # Ya
+)
 self_access %= self_ + Dot + identifier, lambda h, s: SelfNode(
     IdentifierNode(s[3]), s[1]
-)  # Ya
+)
 kern_instance_creation %= (
     New + identifier + oPar + arguments + cPar,
     lambda h, s: KernInstanceCreationNode(IdentifierNode(s[2]), s[4]),
-)  # Ya
+)
 # kern_instance_creation %= New + identifier, lambda h, s: KernInstanceCreationNode(IdentifierNode(s[2]),[])
 
-math_call %= sqrt + oPar + ExprNum + cPar, lambda h, s: SqrtMathNode(s[3], s[1])  # Ya
-math_call %= cos + oPar + ExprNum + cPar, lambda h, s: CosMathNode(s[3], s[1])  # Ya
-math_call %= sin + oPar + ExprNum + cPar, lambda h, s: SinMathNode(s[3], s[1])  # Ya
-math_call %= tan + oPar + ExprNum + cPar, lambda h, s: TanMathNode(s[3], s[1])  # Ya
-math_call %= exp + oPar + ExprNum + cPar, lambda h, s: ExpMathNode(s[3], s[1])  # Ya
+math_call %= sqrt + oPar + ExprNum + cPar, lambda h, s: SqrtMathNode(s[3], s[1])
+math_call %= cos + oPar + ExprNum + cPar, lambda h, s: CosMathNode(s[3], s[1])
+math_call %= sin + oPar + ExprNum + cPar, lambda h, s: SinMathNode(s[3], s[1])
+math_call %= tan + oPar + ExprNum + cPar, lambda h, s: TanMathNode(s[3], s[1])
+math_call %= exp + oPar + ExprNum + cPar, lambda h, s: ExpMathNode(s[3], s[1])
 math_call %= (
     log + oPar + ExprNum + Comma + ExprNum + cPar,
     lambda h, s: LogFunctionCallNode(s[3], s[5], s[1]),
-)  # Ya
-math_call %= rand + oPar + cPar, lambda h, s: RandomFunctionCallNode(s[1])  # Ya
+)
+math_call %= rand + oPar + cPar, lambda h, s: RandomFunctionCallNode(s[1])
 math_call %= PI, lambda h, s: PINode(s[1])
 
 arguments %= expr_statement + Comma + arguments, lambda h, s: [s[1]] + s[3]

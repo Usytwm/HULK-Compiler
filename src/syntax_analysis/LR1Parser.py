@@ -24,9 +24,10 @@ class ShiftReduceParser:
     REDUCE = "REDUCE"
     OK = "OK"
 
-    def __init__(self, G, verbose=False, rebuild=False):
+    def __init__(self, G, min_verbose=False, verbose=False, rebuild=False):
         self.G = G
         self.verbose = verbose
+        self.min_verbose = False
         if rebuild:
             self.action = {}
             self.goto = {}
@@ -57,16 +58,21 @@ class ShiftReduceParser:
             # Detect error
             try:
                 action, tag = self.findActionAndTag(state, lookahead)
-                # action, tag = self.action[state, lookahead]
                 # Shift case
                 if action == ShiftReduceParser.SHIFT:
                     operations.append(ShiftReduceParser.SHIFT)
-                    print(f"Shift: Tag: {tag} State: {state} Lookahead: {lookahead}")
+                    if self.min_verbose:
+                        print(
+                            f"Shift: Tag: {tag} State: {state} Lookahead: {lookahead}"
+                        )
                     stack.append(tag)
                     cursor += 1
                 # Reduce case
                 elif action == ShiftReduceParser.REDUCE:
-                    # print(f"Reduce: Tag: {tag} State: {state} Lookahead: {lookahead}")
+                    if self.min_verbose:
+                        print(
+                            f"Reduce: Tag: {tag} State: {state} Lookahead: {lookahead}"
+                        )
                     for _ in range(len(tag.Right)):
                         stack.pop()
                     operations.append(ShiftReduceParser.REDUCE)

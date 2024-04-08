@@ -27,6 +27,6 @@ class TypeCollectorVisitor:
         except:
             self.errors.append(
                 SemanticError(
-                    f"El nombre de tipo {node.id.id} ya ha sido tomado. Linea:{node.location[0]}, Columna:{node.location[1]}]"
+                    f"El nombre de tipo {node.id.id} ya ha sido tomado. --> row:{node.location[0]}, col:{node.location[1]}"
                 )
             )
