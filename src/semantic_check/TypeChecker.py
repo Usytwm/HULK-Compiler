@@ -36,7 +36,7 @@ class TypeCheckerVisitor:
         if not type_expression.conforms_to(type_id.name):
             self.errors.append(
                 SemanticError(
-                    f"El tipo {type_expression.name} no hereda de {type_id.name} {node.location}"
+                    f"El tipo {type_expression.name} no hereda de {type_id.name}. --> row:{node.location[0]}, col:{node.location[1]}"
                 )
             )
             return self.context.get_type("any")
@@ -48,7 +48,7 @@ class TypeCheckerVisitor:
         if scope.is_local(node.id.id):
             self.errors.append(
                 SemanticError(
-                    f"La variable {node.id.id} ya esta definida. location: {node.location}"
+                    f"La variable {node.id.id} ya esta definida. --> row:{node.location[0]}, col:{node.location[1]}"
                 )
             )
             return scope.find_variable(node.id.id).type
@@ -60,11 +60,11 @@ class TypeCheckerVisitor:
     @visitor.when(TypeNode)
     def visit(self, node: TypeNode, scope: Scope):
         try:
-            return self.context.get_type(node.type)
+            return self.context.get_type(node.type_annotation.type)
         except:
             self.errors.append(
                 SemanticError(
-                    f"Tipo {node.type} no esta definido [L:{node.location[0]}, C:{node.location[1]}]"
+                    f"Tipo {node.type_annotation.type} no esta definido. --> row:{node.type_annotation.location[0]}, col:{node.type_annotation.location[1]}"
                 )
             )
             return self.context.get_type("any")
@@ -74,7 +74,7 @@ class TypeCheckerVisitor:
         if node.id.id in self.default_functions:
             self.errors.append(
                 SemanticError(
-                    f"Esta redefiniendo una funcion {node.id.id} que esta definida por defecto en el lenguaje y no se puede sobreescribir"
+                    f"Esta redefiniendo una funcion {node.id.id} que esta definida por defecto en el lenguaje y no se puede sobreescribir. --> row:{node.location[0]}, col:{node.location[1]}"
                 )
             )
 
@@ -88,7 +88,7 @@ class TypeCheckerVisitor:
                 return_type = self.context.get_type(type_annotation.type)
             except:
                 self.errors.append(
-                    f"El tipo de retorno {node.type_annotation.type} no esta definido"
+                    f"El tipo de retorno {node.type_annotation.type} no esta definido. --> row:{node.type_annotation.location[0]}, col:{node.type_annotation.location[1]}"
                 )
                 return_type = self.context.get_type("object")
 
@@ -104,7 +104,7 @@ class TypeCheckerVisitor:
                 except:
                     self.errors.append(
                         SemanticError(
-                            f"El tipo del parametro {parama[0].id} que se le pasa a la funcion {node.id.id} no esta definido"
+                            f"El tipo del parametro {parama[0].id} que se le pasa a la funcion {node.id.id} no esta definido. --> row:{parama[1].location[0]}, col:{parama[1].location[1]}"
                         )
                     )
                     arg_types.append(self.context.get_type("object"))
@@ -113,7 +113,7 @@ class TypeCheckerVisitor:
                 if scope.method_is_define(node.id.id, len(node.parameters)):
                     method = scope.get_method(node.id.id, len(node.parameters))
                     self.errors.append(
-                        f"La funcion {node.id.id} ya existe en este scope con {len(arg_names)} cantidad de parametros"
+                        f"La funcion {node.id.id} ya existe en este scope con {len(arg_names)} cantidad de parametros. --> row:{node.id.location[0]}, col:{node.id.location[1]}"
                     )
                 else:
                     method = Method(node.id.id, arg_names, arg_types, return_type)
@@ -143,7 +143,7 @@ class TypeCheckerVisitor:
 
         self.errors.append(
             SemanticError(
-                f"El tipo de retorno de la funcion y el tipo de retorno del cuerpo de la funcion no es el mismo. location: {node.location}"
+                f"El tipo de retorno de la funcion y el tipo de retorno del cuerpo de la funcion no es el mismo. --> row:{node.location[0]}, col:{node.location[1]}"
             )
         )
         return self.context.get_type("any")
@@ -153,7 +153,9 @@ class TypeCheckerVisitor:
         # verifico el tipo de la condicion y a la vez veo si las variables que estan dentro de ella estan ya definidas
         if not self.visit(node.condition, scope).conforms_to("bool"):
             self.errors.append(
-                SemanticError(f"La condicion del if debe ser de tipo bool")
+                SemanticError(
+                    f"La condicion del if debe ser de tipo bool. --> row:{node.condition.location[0]}, col:{node.condition.location[1]}"
+                )
             )
 
         type = self.context.get_type("object")
@@ -184,7 +186,7 @@ class TypeCheckerVisitor:
             if not self.visit(node._else, inner_scope).conforms_to(type.name):
                 self.errors.append(
                     SemanticError(
-                        f"Los distintos bloques del if no retornan el mismo tipo."
+                        f"Los distintos bloques del if no retornan el mismo tipo. --> row:{node._else.location[0]}, col:{node._else.location[1]}"
                     )
                 )
                 type = self.context.get_type("any")
@@ -195,7 +197,9 @@ class TypeCheckerVisitor:
     def visit(self, node: ElifStructureNode, scope: Scope):
         if not self.visit(node.condition, scope).conforms_to("bool"):
             self.errors.append(
-                SemanticError(f"La condicion del if debe ser de tipo bool")
+                SemanticError(
+                    f"La condicion del if debe ser de tipo bool. --> row:{node.location[0]}, {node.location[1]}"
+                )
             )
 
         inner_scope = scope.create_child()
@@ -218,7 +222,9 @@ class TypeCheckerVisitor:
     def visit(self, node: WhileStructureNode, scope: Scope):
         if not self.visit(node.condition, scope).conforms_to("bool"):
             self.errors.append(
-                SemanticError(f"La condicion del while debe ser de tipo bool")
+                SemanticError(
+                    f"La condicion del while debe ser de tipo bool. --> row:{node.condition.location[0]}, col:{node.condition.location[1]}"
+                )
             )
 
         inner_scope = scope.create_child()
@@ -261,7 +267,7 @@ class TypeCheckerVisitor:
                 )
                 self.errors.append(
                     SemanticError(
-                        f"El tipo {list(param.items())[0][1].type} del argumento {arg.id} no esta definido"
+                        f"El tipo {list(param.items())[0][1].type} del argumento {arg.id} no esta definido. --> row:{arg.location[0]}, col:{arg.location[1]}"
                     )
                 )
             temp_scope.define_variable(arg.id, type_att)
@@ -334,7 +340,7 @@ class TypeCheckerVisitor:
             else:
                 self.errors.append(
                     SemanticError(
-                        f"El metodo {node.object_property_to_acces.id} no existe en la clase {base_object_type.name}"
+                        f"El metodo {node.object_property_to_acces.id} no existe en la clase {base_object_type.name}. --> row:{node.object_property_to_acces.location[0]}, col:{node.object_property_to_acces.location[1]}"
                     )
                 )
                 return self.context.get_type("any")
@@ -346,7 +352,7 @@ class TypeCheckerVisitor:
                 ):
                     self.errors.append(
                         SemanticError(
-                            f"El tipo del parametro {i} no coincide con el tipo del parametro {i} de la funcion {node.object_property_to_acces.id}."
+                            f"El tipo del parametro {i} no coincide con el tipo del parametro {i} de la funcion {node.object_property_to_acces.id}. --> row:{node.location[0]}, col:{node.location[1]}"
                         )
                     )
                     correct = False
@@ -369,7 +375,7 @@ class TypeCheckerVisitor:
         if not type_1.conforms_to("bool") or not type_2.conforms_to("bool"):
             self.errors.append(
                 SemanticError(
-                    f"Solo se pueden emplear operadores booleanos entre expresiones booleanas."
+                    f"Solo se pueden emplear operadores booleanos entre expresiones booleanas. --> row:{node.location[0]}, col:{node.location[1]}"
                 )
             )
             return self.context.get_type("any")
@@ -384,7 +390,7 @@ class TypeCheckerVisitor:
         if not type_1.conforms_to("number") or not type_2.conforms_to("number"):
             self.errors.append(
                 SemanticError(
-                    f"Solo se pueden emplear aritmeticos entre expresiones aritmeticas. On: L: {node.location[0]} C: {node.location[1]}"
+                    f"Solo se pueden emplear aritmeticos entre expresiones aritmeticas. --> row:{node.location[0]}, col:{node.location[1]}"
                 )
             )
             return self.context.get_type("any")
@@ -395,7 +401,9 @@ class TypeCheckerVisitor:
     def visit(self, node: MathOperationNode, scope: Scope):
         if not self.visit(node.node, scope).conforms_to("number"):
             self.errors.append(
-                SemanticError(f"Esta funcion solo puede ser aplicada a numeros.")
+                SemanticError(
+                    f"Esta funcion solo puede ser aplicada a numeros. --> row:{node.location[0]}, col:{node.location[1]}"
+                )
             )
             return self.context.get_type("any")
 
@@ -407,7 +415,9 @@ class TypeCheckerVisitor:
             node.expression, scope
         ).conforms_to("number"):
             self.errors.append(
-                SemanticError(f"Esta funcion solo puede ser aplicada a numeros.")
+                SemanticError(
+                    f"Esta funcion solo puede ser aplicada a numeros. --> row:{node.location[0]}, col{node.location[1]}:"
+                )
             )
             return self.context.get_type("any")
 
@@ -443,7 +453,7 @@ class TypeCheckerVisitor:
                     except:
                         self.errors.append(
                             SemanticError(
-                                f"El tipo {self.current_type.name} no posee ningún ancestro con el método {self.current_method.id.id}. Linea:{node.location[0]} , Columna:{node.location[1]} "
+                                f"El tipo {self.current_type.name} no posee ningún ancestro con el método {self.current_method.id.id}. --> row:{node.location[0]}, col:{node.location[1]} "
                             )
                         )
                 else:
@@ -460,7 +470,7 @@ class TypeCheckerVisitor:
                 else:
                     self.errors.append(
                         SemanticError(
-                            f"La funcion {node.id.id} no existe en este scope"
+                            f"La funcion {node.id.id} no existe en este scope. --> row:{node.location[0]}, col:{node.location[1]}"
                         )
                     )
                     return self.context.get_type("any")
@@ -486,7 +496,9 @@ class TypeCheckerVisitor:
                 ]
                 if len(args) == 0:
                     self.errors.append(
-                        f"La funcion {node.id.id} requiere otra cantidad de parametros pero {len(node.args)} fueron suministrados"
+                        SemanticError(
+                            f"La funcion {node.id.id} requiere otra cantidad de parametros pero {len(node.args)} fueron suministrados. --> row:{node.id.location[0]}, col:{node.id.location[1]}"
+                        )
                     )
                     return self.context.get_type("any")
 
@@ -503,7 +515,9 @@ class TypeCheckerVisitor:
                         correct = False
                 return args[0].return_type if correct else self.context.get_type("any")
         except:
-            self.errors.append(f"La funcion {node.id.id} no esta definida.")
+            self.errors.append(
+                f"La funcion {node.id.id} no esta definida. --> row:{node.location[0]}, col:{node.location[1]}"
+            )
             return self.context.get_type("any")
 
     @visitor.when(StringConcatNode)
@@ -518,7 +532,7 @@ class TypeCheckerVisitor:
         ):
             self.errors.append(
                 SemanticError(
-                    f"Esta operacion solo puede ser aplicada a strings o entre una combinacion de string con number."
+                    f"Esta operacion solo puede ser aplicada a strings o entre una combinacion de string con number. --> row:{node.location[0]}, col:{node.location[1]}"
                 )
             )
             return self.context.get_type("any")
@@ -537,7 +551,7 @@ class TypeCheckerVisitor:
         ):
             self.errors.append(
                 SemanticError(
-                    f"Esta operacion solo puede ser aplicada a strings o entre una combinacion de string con number."
+                    f"Esta operacion solo puede ser aplicada a strings o entre una combinacion de string con number. --> row:{node.location[0]}, col:{node.location[1]}"
                 )
             )
             return self.context.get_type("any")
@@ -550,7 +564,9 @@ class TypeCheckerVisitor:
             node.right, scope
         ).conforms_to("number"):
             self.errors.append(
-                SemanticError(f"Esta operacion solo puede ser aplicada a numeros.")
+                SemanticError(
+                    f"Esta operacion solo puede ser aplicada a numeros. --> row:{node.location[0]}, col:{node.location[1]}"
+                )
             )
             return self.context.get_type("any")
 
@@ -560,7 +576,9 @@ class TypeCheckerVisitor:
     def visit(self, node: BoolNotNode, scope: Scope):
         if not self.visit(node.node, scope).conforms_to("bool"):
             self.errors.append(
-                SemanticError(f"Esta operacion solo puede ser aplicada a booleanos.")
+                SemanticError(
+                    f"Esta operacion solo puede ser aplicada a booleanos. --> row:{node.node.location[0]},  row:{node.node.location[0]}"
+                )
             )
             return self.context.get_type("any")
 
@@ -573,7 +591,9 @@ class TypeCheckerVisitor:
             return self.context.get_type("number")
         except:
             self.errors.append(
-                SemanticError(f"El elemento {node.value} no es un numero")
+                SemanticError(
+                    f"El elemento {node.value} no es un numero. --> row:{node.location[0]}, col:{node.location[1]}"
+                )
             )
             return self.context.get_type("any")
 
@@ -597,7 +617,7 @@ class TypeCheckerVisitor:
             if len(ret_type.args) != len(node.args):
                 self.errors.append(
                     SemanticError(
-                        f"El tipo {node.id} recibe {len(ret_type.args)} parametros para instanciarse"
+                        f"El tipo {node.id} recibe {len(ret_type.args)} parametros para instanciarse. --> row:{node.type.location[0]} , col:{node.type.location[0]}"
                     )
                 )
                 return self.context.get_type("any")
@@ -611,7 +631,7 @@ class TypeCheckerVisitor:
                 except:
                     self.errors.append(
                         SemanticError(
-                            f"El tipo del argumento {arg_names[i]} es incorrecto a la hora de heredar de {ret_type.name}. Linea:{node.location[0]}"
+                            f"El tipo del argumento {arg_names[i]} es incorrecto a la hora de heredar de {ret_type.name}. -->row:{node.location[0]}"
                         )
                     )
                     temp_type = self.context.get_type("any")
@@ -660,7 +680,11 @@ class TypeCheckerVisitor:
         if scope.is_defined(node.id):
             return scope.find_variable(node.id).type
 
-        self.errors.append(SemanticError(f"La variable {node.id} no esta definida"))
+        self.errors.append(
+            SemanticError(
+                f"La variable {node.id} no esta definida, --> row:{node.location[0]}, col:{node.location[1]}"
+            )
+        )
         return self.context.get_type("any")
 
     @visitor.when(CollectionNode)
@@ -675,7 +699,9 @@ class TypeCheckerVisitor:
     def visit(self, node: SelfNode, scope: Scope):
         if not self.current_type:
             self.errors.append(
-                SemanticError(f"La palabra self solo se puede usar dentro de clases")
+                SemanticError(
+                    f"La palabra self solo se puede usar dentro de clases. --> row:{node.location[0]}, col:{node.location[1]}"
+                )
             )
             return self.context.get_type("any")
         try:
