@@ -12,13 +12,11 @@ class TypeBuilderVisitor:
 
     @visitor.on("node")
     def visit(self, node, tabs):
-        print(f"OnGeneric: {type(node)}")
         pass
 
     @visitor.when(ProgramNode)
     def visit(self, node: ProgramNode):
         for statment in node.statments:
-            print(f"Statement (Builder): {statment}")
             self.visit(statment)
 
     @visitor.when(TypeDefinitionNode)
@@ -29,14 +27,14 @@ class TypeBuilderVisitor:
             if inheritance.conforms_to(self.currentType.name):
                 self.errors.append(
                     SemanticError(
-                        f"Dependencias circulares. El tipo {node.id.id} hereda de el tipo {node.inheritance.type.id}"
+                        f"Dependencias circulares. El tipo {node.id.id} hereda de el tipo {node.inheritance.type.id}. Linea:{node.location[0]} , Columna:{node.location[1]}"
                     )
                 )
                 inheritance = self.context.get_type("object")
         except:
             self.errors.append(
                 SemanticError(
-                    f"El tipo {str(node.inheritance.type.id)} del que se hereda no esta definido"
+                    f"El tipo {str(node.inheritance.type.id)} del que se hereda no esta definido. Linea:{node.location[0]}"
                 )
             )
             inheritance = self.context.get_type("object")
@@ -75,7 +73,9 @@ class TypeBuilderVisitor:
                 )
             except:
                 self.errors.append(
-                    SemanticError(f"El atributo {node.id.id} ya esta definido")
+                    SemanticError(
+                        f"El atributo {node.id.id} ya esta definido. Linea:{node.location[0]} , Columna:{node.location[1]}"
+                    )
                 )
 
     @visitor.when(FunctionDefinitionNode)
@@ -102,7 +102,7 @@ class TypeBuilderVisitor:
             except:
                 self.errors.append(
                     SemanticError(
-                        f"El tipo del parametro {parama[0].id} que se le pasa a la funcion {node.id.id} no esta definido"
+                        f"El tipo del parametro {parama[0].id} que se le pasa a la funcion {node.id.id} no esta definido. Linea:{node.location[0]} "
                     )
                 )
                 arg_types.append(self.context.get_type("object"))
@@ -114,7 +114,9 @@ class TypeBuilderVisitor:
                 )
             except:
                 self.errors.append(
-                    f"La funcion {node.id.id} ya existe en el contexto de {self.currentType.name}."
+                    SemanticError(
+                        f"La funcion {node.id.id} ya existe en el contexto de {self.currentType.name}. Linea:{node.location[0]} , Columna:{node.location[1]}"
+                    )
                 )
 
     @visitor.when(CollectionNode)

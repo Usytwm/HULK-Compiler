@@ -12,6 +12,7 @@ class TypeCheckerVisitor:
         self.scope: Scope = scope
         self.default_functions = default_functions
         self.current_type: Type = None
+        self.current_method: Method = None
 
     @visitor.on("node")
     def visit(self, node, scope):
@@ -271,7 +272,7 @@ class TypeCheckerVisitor:
                 )
                 self.errors.append(
                     SemanticError(
-                        f"El tipo {list(param.items())[0][1].type} del argumento {arg.id} no esta definido"
+                        f"El tipo {list(param.items())[0][1].type} del argumento {arg.id} no esta definido. Linea:{node.location[0]}"
                     )
                 )
             temp_scope.define_variable(arg.id, type_att)
@@ -285,7 +286,9 @@ class TypeCheckerVisitor:
             type_att.type = typ
 
         for method in node.methods:
+            self.current_method = method
             self.visit(method, inner_scope)
+            self.current_method = None
 
         self.current_type = None
 
@@ -453,7 +456,23 @@ class TypeCheckerVisitor:
     def visit(self, node: FunctionCallNode, scope: Scope):
         try:
             if self.current_type:
-                method = self.current_type.get_method(node.id.id)
+                if self.current_method and node.id.id == "base":
+                    inheritance_methods = self.current_type.inhertance.methods
+                    try:
+                        method = list(
+                            filter(
+                                lambda x: x.name == self.current_method.id.id,
+                                inheritance_methods,
+                            )
+                        )[0]
+                    except:
+                        self.errors.append(
+                            SemanticError(
+                                f"El tipo {self.current_type.name} no posee ningún ancestro con el método {self.current_method.id.id}. Linea:{node.location[0]} , Columna:{node.location[1]} "
+                            )
+                        )
+                else:
+                    method = self.current_type.get_method(node.id.id)
                 # En caso de ser un metodo se verifica si la cantidad de parametros suministrados es correcta
                 if method:
                     if len(node.args) != len(method.param_names):
@@ -514,7 +533,11 @@ class TypeCheckerVisitor:
                 # Si coinciden los tipos de los parametros entonces se retorna el tipo de retorno de la funcion en otro caso se retorna el tipo object
                 return args[0].return_type if correct else self.context.get_type("any")
         except:
-            self.errors.append(f"La funcion {node.id.id} no esta definida.")
+            self.errors.append(
+                SemanticError(
+                    f"La funcion {node.id.id} no esta definida. Linea:{node.location[0]} , Columna:{node.location[1]}"
+                )
+            )
             return self.context.get_type("any")
 
     @visitor.when(StringConcatNode)

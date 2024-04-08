@@ -13,13 +13,11 @@ class TypeCollectorVisitor:
 
     @visitor.on("node")
     def visit(self, node):
-        print(f"OnGeneric: {type(node)}")
         pass
 
     @visitor.when(ProgramNode)
     def visit(self, node: ProgramNode):
         for statment in node.statments:
-            print(f"Statement (Collector): {statment}")
             self.visit(statment)
 
     @visitor.when(TypeDefinitionNode)
@@ -29,6 +27,6 @@ class TypeCollectorVisitor:
         except:
             self.errors.append(
                 SemanticError(
-                    f"El nombre de tipo {node.id.id} ya ha sido tomado [L:{node.location[0]}, C:{node.location[1]}]"
+                    f"El nombre de tipo {node.id.id} ya ha sido tomado. Linea:{node.location[0]}, Columna:{node.location[1]}]"
                 )
             )

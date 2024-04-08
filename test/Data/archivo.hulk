@@ -43,7 +43,7 @@ type PolarPoint(phi:number, rho:number) inherits Point(rho , phi) {
 
 type Knight(value:string, value1:string) inherits Person(value , value1) {
     name():string => "Sir" @@ base();
-    //base():number=>1;
+    base():number=>1;
 }
 
 type Person(firstname:string, lastname:string) {
@@ -120,13 +120,5 @@ type C inherits A {
         );
     let x = 42 in print(x);
        let total = { print("Total"); 5; } + 6 in print(total);
-    let x = if (rand() < 0.5){ new B() ;}else {new C();} in
-        if (x is B){
-            let y  = x in {
-                y.hello();
-            };}
-        else {
-            print("x cannot be downcasted to B");
-        };
 
 }

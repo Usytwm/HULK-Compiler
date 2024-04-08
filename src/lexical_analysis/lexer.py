@@ -87,7 +87,7 @@ class Lexer:
 
             if final[0][1] == "newline":
                 row += 1
-                col = 0
+                col = 1
                 continue
 
             if final[0][1] == "comment":
