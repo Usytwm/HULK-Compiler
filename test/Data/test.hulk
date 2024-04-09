@@ -1,48 +1,58 @@
-function tan(x: Number): Number => sin(x) / cos(x);
-function cot(x) => 1 / tan(x);
-function operate(x, y) {
+function cot(x: number): number => 1 / tan(x);
+function operate(x :number, y: number) {
     print(x + y);
     print(x - y);
     print(x * y);
     print(x / y);
 }
-function fib(n) => if (n == 0 or n == 1) 1 else fib(n-1) + fib(n-2);
-function fact(x) => let f = 1 in for (i in range(1, x+1)) f := f * i;
-function gcd(a, b) => while (a > 0)
+function fib(n: number):number => if (n == 0 or n == 1) {1;} else {fib(n - 1) + fib(n - 2);}
+print(fib(9));
+function fact(x:number):number => let f = 1 in for (let i = 1; i <= x; i:= i + 1) {f := f * i;};
+print(fact(5));
+function gcd(a: number , b: number):number => while (b > 0){
         let m = a % b in {
-            b := a;
-            a := m;
+            a := b;
+            b := m;
+            a;
         };
-type Range(min:Number, max:Number) {
-    min = min;
-    max = max;
-    current = min - 1;
+    };
 
-    next(): Boolean => (self.current := self.current + 1) < self.max;
-    current(): Number => self.current;
-}
-type Point(x,y) {
-    x = x;
-    y = y;
+print(gcd(5,3));
 
-    getX() => self.x;
-    getY() => self.y;
 
-    setX(x) => self.x := x;
-    setY(y) => self.y := y;
-}
-type PolarPoint(phi, rho) inherits Point(rho * sin(phi), rho * cos(phi)) {
-    rho() => sqrt(self.getX() ^ 2 + self.getY() ^ 2);
-}
-type Knight inherits Person {
-    name() => "Sir" @@ base();
-}
-type Person(firstname, lastname) {
-    firstname = firstname;
-    lastname = lastname;
+type Range(min:number, max:number) {
+    self.min = min;
+    self.max = max;
+    self.current = min - 1;
 
-    name() => self.firstname @@ self.lastname;
-    hash() : Number {
+    next(): bool => (self.current := self.current + 1) < self.max;
+    current(): number => self.current;
+}
+type Point(x:number,y:number) {
+    self.x = x;
+    self.y = y;
+
+    getX():number => self.x;
+    getY():number => self.y;
+
+    setX(x:number) => self.x := x;
+    setY(y:number) => self.y := y;
+}
+type PolarPoint(phi:number, rho:number) inherits Point(rho , phi) {
+    rho():number => sqrt(getX() ^ 2 + getY() ^ 2);
+}
+
+type Knight(value:string, value1:string) inherits Person(value , value1) {
+    name():string => "Sir" @@ "hola";
+    base():number=>1;
+}
+
+type Person(firstname:string, lastname:string) {
+    self.firstname = firstname;
+    self.lastname = lastname;
+
+    name(): string => self.firstname @@ self.lastname;
+    hash() : number {
         5;
     }
 }
@@ -60,7 +70,7 @@ type B inherits A {
     hello() => print("B");
 }
 
-type C inherits A {
+type C inherits B {
     hello() => print("C");
 }
 
@@ -77,10 +87,7 @@ type C inherits A {
         print(sin(PI/2));
         print("Hello World");
     }
-
-
     print(tan(PI) ** 2 + cot(PI) ** 2);
-
     let msg = "Hello World" in print(msg);
     let number = 42, text = "The meaning of life is" in
         print(text @ number);
@@ -107,7 +114,7 @@ type C inherits A {
         let a = 42 in print(a);
         print(a);
     };
-    let a = 7, a = 7 * 6 in print(a);
+    let a = 7 in print(a);
     let a = 7 in
         let a = 7 * 6 in
             print(a);
@@ -116,37 +123,37 @@ type C inherits A {
         a := 1;
         print(a);
     };
-    let a = 0 in
-        let b = a := 1 in {
-            print(a);
-            print(b);
-        };
-    let a = 42 in if (a % 2 == 0) print("Even") else print("odd");
-    let a = 42 in print(if (a % 2 == 0) "even" else "odd");
+    let a = 42 in if (a % 2 == 0) {print("Even");} else {print("odd");};
+    let a = 42 in print(if (a % 2 == 0) {"even";} else {"odd";});
     let a = 42 in
         if (a % 2 == 0) {
             print(a);
             print("Even");
         }
-        else print("Odd");
-    let a = 42, let mod = a % 3 in // error
-        print(
-            if (mod == 0) "Magic"
-            elif (mod % 3 == 1) "Woke"
-            else "Dumb"
-        );
-    let a = 10 in while (a >= 0) {
+        else {
+            print("Odd");
+        };
+    let mod =4;
+    print(
+        if (mod == 0) {"Magic";}
+        elif (mod % 3 == 1) {"Woke";}
+        else {"Dumb";}
+    );
+
+        let a = 10 in while (a >= 0) {
         print(a);
         a := a - 1;
-    }
+    };
     
-    for (x in range(0, 10)) print(x);
-    let iterable = range(0, 10) in
-        while (iterable.next())
+    for (let x =0; x < 10; x:=x + 1) {
+        print(x);
+    }
+    let iterable = new Range(0, 10) in
+        while (iterable.next()){
             let x = iterable.current() in
                 print(x);
-
-    let pt = new Point() in // error
+        };
+    let pt = new Point(3,4) in // error
         print("x: " @ pt.getX() @ "; y: " @ pt.getY());
     let pt = new Point(3,4) in
         print("x: " @ pt.getX() @ "; y: " @ pt.getY());
@@ -155,32 +162,24 @@ type C inherits A {
 
     let p = new Knight("Phil", "Collins") in
         print(p.name());
-    let p: Person = new Knight("Phil", "Collins") in print(p.name());
-    let x: Number = 42 in print(x);
-
+    let p = new Knight("Phil", "Collins") in print(p.name());
+    let x = 42 in print(x);
     let x = new Superman() in
         print(
-            if (x is Bird) "It's bird!"
-            elif (x is Plane) "It's a plane!"
-            else "No, it's Superman!"
+            if (x is Bird) {"It's bird!";}
+            elif (x is Plane) {"It's a plane!";}
+            else {"No, it's Superman!";}
         );
     let x = 42 in print(x);
-    let total = { print("Total"); 5; } + 6 in print(total);
-    let x : A = if (rand() < 0.5) new B() else new C() in
-        if (x is B)
-            let y : B = x as B in {
+    let total = { print("Total"); 5; } + 6 in print("total:" @ total);
+    let x = if (rand() < 0.5) {new B();} else {new C();} in
+        if (x is B){
+            let y = x in {
                 y.hello();
-            }
+            };
+        }
         else {
             print("x cannot be downcasted to B");
         };
-
-    let numbers = [1,2,3,4,5,6,7,8,9] in
-        for (x in numbers)
-            print(x);
-    let numbers = [1,2,3,4,5,6,7,8,9] in print(numbers[7]);
-    let squares = [x^2 || x in range(1,10)] in print(x); // error
-    let squares = [x^2 || x in range(1,10)] in for (x in squares) print(x);
-    let x : Hashable = new Person() in print(x.hash());
-    let x : Hashable = new Point(0,0) in print(x.hash()); // error
+    print(rand());
 }

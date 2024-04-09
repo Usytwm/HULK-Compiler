@@ -62,6 +62,15 @@ class InterpreterScope(Scope):
         self.var_values[vname] = value
         return info
 
+    def reasign_variable(self, vname, vtype, value):
+        info = VariableInfo(vname, vtype)
+        for variable in set(self.local_variables):  # Hacer una copia para iterar
+            if variable.name == vname:
+                self.local_variables.remove(variable)
+        self.local_variables.add(info)
+        self.var_values[vname] = value
+        return info
+
     def find_variable_value(self, vname, index=None):
         for x in self.local_variables:
             if x.name == vname:
@@ -148,6 +157,7 @@ class TreeInterpreter:
     def visit(self, node: DestroyNode, scope: InterpreterScope):
         type, value = self.visit(node.expression, scope)
         scope.set_variable_value(node.id.id, value)
+        scope.reasign_variable(node.id.id, type, value)
 
         if isinstance(node.id, SelfNode):
             self_current = AttributeInstance(node.id.id.id, type, value)
@@ -194,7 +204,7 @@ class TreeInterpreter:
         _, condition_value = self.visit(node.condition, scope)
         while condition_value:
             result = self.visit_body(node.body, inner_scope)
-            _, condition_value = self.visit(node.condition, scope)
+            _, condition_value = self.visit(node.condition, inner_scope)
         return result
 
     @visitor.when(ForStructureNode)
