@@ -9,7 +9,7 @@ import unittest
 
 
 class TestHulk(unittest.TestCase):
-    path = "test/Data/archivo.hulk"
+    path = "test/Data/test.hulk"
     with open(path, "r", encoding="utf-8") as archivo:
         content = archivo.read()
 
@@ -20,7 +20,7 @@ class TestHulk(unittest.TestCase):
         EOF,
     )
 
-    parser = LR1Parser(grammar, rebuild=False)
+    parser = LR1Parser(grammar, rebuild=True)
     checker = SemanticCheck()
 
     # --------------------------------Análisis Léxico--------------------------------
