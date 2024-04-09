@@ -1,0 +1,124 @@
+
+//producto de bloques de expresiones
+print( {5;} + {7;});
+
+
+print(
+    {4;} * {let f = 1 in for (let i = 1; i <= 5; i:= i + 1) {f := f * i;};}
+);
+
+
+//Definicion de funciones
+
+function cot(x: number): number => 1 / tan(x);
+
+function operate(x :number, y: number) {
+    print(x + y);
+    print(x - y);
+    print(x * y);
+    print(x / y);
+}
+
+function gcd(a: number , b: number):number => while (b > 0){
+        let m = a % b in {
+            a := b;
+            b := m;
+            a;
+        };
+    };
+
+print(gcd(5,3));
+
+//funciones recursivas
+
+function fib(n: number):number => if (n == 0 or n == 1) {1;} else {fib(n - 1) + fib(n - 2);}
+print(fib(9));
+
+function fact(x:number):number => let f = 1 in for (let i = 1; i <= x; i:= i + 1) {f := f * i;};
+print(fact(5));
+
+
+
+//defincion de tipos y herencia
+
+
+type Range(min:number, max:number) {
+    self.min = min;
+    self.max = max;
+    self.current = min - 1;
+
+    next(): bool => (self.current := self.current + 1) < self.max;
+    current(): number => self.current;
+}
+type Point(x:number,y:number) {
+    self.x = x;
+    self.y = y;
+
+    getX():number => self.x;
+    getY():number => self.y;
+
+    setX(x:number) => self.x := x;
+    setY(y:number) => self.y := y;
+}
+type PolarPoint(phi:number, rho:number) inherits Point(rho , phi) {
+    rho():number => sqrt(getX() ^ 2 + getY() ^ 2);
+}
+
+type Knight(value:string, value1:string) inherits Person(value , value1) {
+    name():string => "Sir" @@ "hola";
+    base():number=>1;
+}
+
+type Person(firstname:string, lastname:string) {
+    self.firstname = firstname;
+    self.lastname = lastname;
+
+    name(): string => self.firstname @@ self.lastname;
+    hash() : number {
+        5;
+    }
+}
+
+type A {
+    self.x = 2;
+    getx() => self.x;
+}
+type B inherits A{
+    self.y = 3;
+}
+type C inherits B{
+    self.x = 4;
+    getx() => base() + 45;
+}
+let a = new A();
+let b = new B();
+let c = new C();
+a := c;
+print(a.getx());
+//b := a;
+
+//basicos
+42;
+print(42);
+print((((1 + 2) ^ 3) * 4) / 5);
+print("Hello World");
+print("The message is \"Hello World\"");
+print("The meaning of life is " @ 42);
+print(sin(2 * PI) ^ 2 + cos(3 * PI / log(4, 64)));
+{
+    print(42);
+    print(sin(PI/2));
+    print("Hello World");
+}
+print(tan(PI) ** 2 + cot(PI) ** 2);
+
+
+//let in
+let msg = "Hello World" in print(msg);
+let number = 42, text = "The meaning of life is" in
+    print(text @ number);
+let number = 42 in
+    let text = "The meaning of life is" in
+        print(text @ number);
+
+ 
