@@ -43,7 +43,7 @@ type PolarPoint(phi:number, rho:number) inherits Point(rho , phi) {
 }
 
 type Knight(value:string, value1:string) inherits Person(value , value1) {
-    name():string => "Sir" @@ "hola";
+    name():string => "Sir" @@ base();
     base():number=>1;
 }
 
