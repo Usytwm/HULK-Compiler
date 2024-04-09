@@ -53,7 +53,24 @@ class TypeCheckerVisitor:
             )
             return scope.find_variable(node.id.id).type
         else:
+            try:
+                type_annotation = self.context.get_type(node.type_annotation.type)
+            except:
+                self.errors.append(
+                    SemanticError(
+                        f'El tipo "{node.type_annotation.type}" asignado a la variable {node.id.id} no existe. --> row:{node.type_annotation.location[0]}, col:{node.type_annotation.location[1]}'
+                    )
+                )
+                return self.context.get_type("object")
+
             type = self.visit(node.expression, scope)
+            if not type.conforms_to(type_annotation.name):
+                self.errors.append(
+                    SemanticError(
+                        f'El tipo "{node.type_annotation.type}" de la variable {node.id.id} no coincide ni es ancestro de el tipo "{type.name}" de la expresion asignada . --> row:{node.type_annotation.location[0]}, col:{node.type_annotation.location[1]}'
+                    )
+                )
+                return self.context.get_type("any")
             scope.define_variable(node.id.id, type)
         return type
 
@@ -278,7 +295,24 @@ class TypeCheckerVisitor:
         for att in node.attributes:
             typ = self.visit(att.expression, temp_scope)
             type_att = self.current_type.get_attribute(att.id.id)
-            type_att.type = typ
+            try:
+                type_annotation = self.context.get_type(att.type_annotation.type)
+            except:
+                self.errors.append(
+                    SemanticError(
+                        f'El tipo "{att.type_annotation.type}" asignado a la variable self.{att.id.id} no existe. --> row:{att.type_annotation.location[0]}, col:{att.type_annotation.location[1]}'
+                    )
+                )
+                type_att.type = self.context.get_type("object")
+            if not typ.conforms_to(type_annotation.name):
+                self.errors.append(
+                    SemanticError(
+                        f'El tipo "{att.type_annotation.type}" de la variable self.{att.id.id} no coincide ni es ancestro de el tipo "{typ.name}" de la expresion asignada . --> row:{att.type_annotation.location[0]}, col:{att.type_annotation.location[1]}'
+                    )
+                )
+                type_att.type = self.context.get_type("any")
+            else:
+                type_att.type = typ
 
         for method in node.methods:
             self.current_method = method

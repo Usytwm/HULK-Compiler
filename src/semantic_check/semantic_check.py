@@ -13,7 +13,7 @@ class SemanticCheck:
         for type in default_types:
             self.context.create_type(type)
             self.context.get_type(type).parent = self.context.get_type("object")
-
+            self.context.get_type(type).inhertance = self.context.get_type("object")
         # ------------------Inicializando funciones por defecto-----------------------------------------------#
         self.scope = Scope(parent=None)
 

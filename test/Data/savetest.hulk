@@ -185,7 +185,4 @@ type C inherits B {
 }
 
 
-let HHH = "string";
-print(HHH is string);
-print(HHH is number);
-//print(HHH is object);
+let HHH: number = "string";

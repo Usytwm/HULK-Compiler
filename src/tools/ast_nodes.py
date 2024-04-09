@@ -93,9 +93,10 @@ class PrintStatmentNode(Node):
 
 # TODO creo que se deberia poner el type_annotation en el kern_assigment
 class KernAssigmentNode(Node):
-    def __init__(self, id, expression, token: Token) -> None:
+    def __init__(self, id, type_annotation, expression, token: Token) -> None:
         super().__init__(token)
         self.id: IdentifierNode = id
+        self.type_annotation: TypeNode = type_annotation
         self.expression = expression
 
 
