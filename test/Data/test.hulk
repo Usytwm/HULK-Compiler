@@ -183,3 +183,6 @@ type C inherits B {
         };
     print(rand());
 }
+
+
+let HHH: number = "string";

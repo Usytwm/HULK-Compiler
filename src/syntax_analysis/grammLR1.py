@@ -219,6 +219,10 @@ multi_assignment %= kern_assignment, lambda h, s: [s[1]]
 kern_assignment %= identifier + Equal + expr_statement, lambda h, s: KernAssigmentNode(
     IdentifierNode(s[1]), s[3], s[1]
 )
+#
+kern_assignment %= identifier + Colon+ identifier+ Equal + expr_statement, lambda h, s: KernAssigmentNode(
+    IdentifierNode(s[1]), s[5], s[1]
+)
 kern_assignment %= self_access + Equal + expr_statement, lambda h, s: KernAssigmentNode(
     IdentifierNode(s[1]), s[3], s[1]
 )
