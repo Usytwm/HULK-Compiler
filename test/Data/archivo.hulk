@@ -62,17 +62,7 @@ type Bird {
 }
 type Plane {
 }
-type A {
-    hello() => print("A");
-}
 
-type B inherits A {
-    hello() => print("B");
-}
-
-type C inherits A {
-    hello() => print("C");
-}
 
 {
     42;
@@ -177,3 +167,34 @@ type C inherits A {
         );
     let x = 42 in print(x);
 }
+for (let x =1; x<=4;x:=x + 1){
+    print(x);
+}
+
+type A{
+    self.x = 2;
+    getx() => self.x;
+}
+
+type B inherits A{
+    self.y = 3;
+}
+  
+type C inherits B{
+    self.x = 4;
+    getx() => base() + 45;
+}
+
+//let b = (new C()).getx() in print(b);
+let a = new A();
+//print(a.getx());
+
+let b = new B();
+//print(b.getx());
+
+let c = new C();
+//print(c.getx());
+
+a := c;
+print(a.getx());
+//b := a;
