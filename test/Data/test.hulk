@@ -189,3 +189,21 @@ let HHH = "string";
 print(HHH is string);
 print(HHH is number);
 //print(HHH is object);
+
+type AA {
+    self.x = 2;
+    getx() => self.x;
+}
+type BB inherits AA{
+    self.y = 3;
+}
+type CC inherits BB{
+    self.x = 4;
+    getx() => base() + 45;
+}
+let a = new AA();
+let b = new BB();
+let c = new CC();
+a := c;
+print(a.getx());
+//b := a;
